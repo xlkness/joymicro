@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package shop;
+
+option go_package="shop/proto1";
+
+service Shop {
+	// 打开点对点
+	rpc EnablePeer2Peer2(Empty) returns (Empty) {};
+	rpc Buy(Request) returns (Response) {};
+}
+
+message Request {
+	string name = 1;
+	int32 num = 2;
+}
+
+message Response {
+	int32 errCode = 1;
+	int32 num = 2;
+	int32 curMoney = 3;
+}
+
+message Empty{}

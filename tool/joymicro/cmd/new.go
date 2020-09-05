@@ -116,7 +116,7 @@ func (nh *NewHandler) outputMainFile(service string) {
 	mfd.out()
 
 	mfd.out("func main() {")
-	mfd.out("\ts, err := srevice.New(\":8888\", []string{\"127.0.0.1:2382\"})")
+	mfd.out("\ts, err := service.New(\":8888\", []string{\"127.0.0.1:2382\"})")
 	mfd.out("\t\tif err != nil {")
 	mfd.out("\t\tpanic(err)")
 	mfd.out("\t}")
@@ -128,7 +128,7 @@ func (nh *NewHandler) outputMainFile(service string) {
 	mfd.out("\t\tpanic(err)")
 	mfd.out("\t}")
 	mfd.out()
-	mfd.out("\tfmt.Printf(\"start service ...\\n\")")
+	//mfd.out("\tfmt.Printf(\"start service ...\\n\")")
 	mfd.out("\terr = s.Run()")
 	mfd.out("\tif err != nil {")
 	mfd.out("\t\tpanic(err)")
@@ -145,9 +145,28 @@ func (nh *NewHandler) newHandler(service, handlerDir string) {
 	}
 	defer fd.Close()
 
-	fd.WriteString("package handler\n\n")
+	mfd := &myfd{fd}
 
-	fd.WriteString("")
+	mfd.out("package handler")
+	mfd.out()
+	mfd.out()
+
+	protoService := []rune(service)
+	protoService[0] -= 32
+	Service := string(protoService)
+
+	mfd.out("import (")
+	mfd.out("\t\"context\"")
+	mfd.out("\t\"", service, "/proto\"")
+	mfd.out(")")
+	mfd.out()
+
+	mfd.out("type ", Service, "Handler struct {")
+	mfd.out("}")
+	mfd.out()
+	mfd.out("func (s *", Service, "Handler) Hello(ctx context.Context, req *proto.Request, res *proto.Response) error {")
+	mfd.out("\treturn nil")
+	mfd.out("}")
 }
 
 func (nh *NewHandler) newProto(service, protoDir string) {
@@ -165,26 +184,25 @@ func (nh *NewHandler) newProto(service, protoDir string) {
 	mfd.out()
 	mfd.out()
 
-	mfd.out("package ", service)
+	mfd.out("package ", "proto", ";")
+	mfd.out()
 
 	protoService := []rune(service)
 	protoService[0] -= 32
-	mfd.out("service ", string(protoService))
-	mfd.out("\t rpc Buy(Request) returns (Response) {};")
+	mfd.out("service ", string(protoService), " {")
+	mfd.out("\t rpc Hello(Request) returns (Response) {};")
 	mfd.out("}")
 	mfd.out()
 	mfd.out()
 
 	mfd.out("message Request {")
 	mfd.out("\tstring name = 1;")
-	mfd.out("\tint32 num = 2;")
 	mfd.out("}")
 	mfd.out()
 	mfd.out()
 	mfd.out("message Response {")
 	mfd.out("\tint32 errCode = 1;")
-	mfd.out("\tint32 num =2 ;")
-	mfd.out("\tint32 curMoney = 3;")
+	mfd.out("\tint32 msg =2 ;")
 	mfd.out("}")
 }
 

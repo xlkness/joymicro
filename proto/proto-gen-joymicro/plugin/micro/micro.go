@@ -41,7 +41,6 @@ func (g *joymicro) Name() string {
 // They may vary from the final path component of the import path
 // if the name is used by other packages.
 var (
-	apiPkg     string
 	contextPkg string
 	clientPkg  string
 	serverPkg  string

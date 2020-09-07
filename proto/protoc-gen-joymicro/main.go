@@ -53,8 +53,8 @@ import (
 	"os"
 
 	"github.com/golang/protobuf/proto"
-	"joynova.com/joynova/joymicro/proto/proto-gen-joymicro/generator"
-	_ "joynova.com/joynova/joymicro/proto/proto-gen-joymicro/plugin/micro"
+	"joynova.com/joynova/joymicro/proto/protoc-gen-joymicro/generator"
+	_ "joynova.com/joynova/joymicro/proto/protoc-gen-joymicro/plugin/micro"
 )
 
 func main() {

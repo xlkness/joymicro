@@ -20,7 +20,6 @@ require (
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/onsi/ginkgo v1.12.0 // indirect
 	github.com/prometheus/client_golang v1.7.0 // indirect
-	github.com/protocolbuffers/protobuf v3.13.0+incompatible // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20200313005456-10cdbea86bc0
 	github.com/smallnest/rpcx v0.0.0-20200904040754-162b6648c998
 	github.com/tmc/grpc-websocket-proxy v0.0.0-20200122045848-3419fae592fc // indirect

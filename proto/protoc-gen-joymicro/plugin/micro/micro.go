@@ -10,7 +10,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	pb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	options "google.golang.org/genproto/googleapis/api/annotations"
-	"joynova.com/joynova/joymicro/proto/proto-gen-joymicro/generator"
+	"joynova.com/joynova/joymicro/proto/protoc-gen-joymicro/generator"
 )
 
 // Paths for packages used by code generated in this file,

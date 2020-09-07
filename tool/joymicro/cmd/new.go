@@ -56,14 +56,26 @@ func (nh *NewHandler) newServiceDir(servicePath string) {
 	}
 	fmt.Printf("==> create dir %v\n", servicePath)
 
+	service := filepath.Base(servicePath)
+
 	nh.outputHandlerDir(servicePath)
 
 	nh.outputProtoDir(servicePath)
 
 	nh.outputMainFile(servicePath)
 
-	fmt.Printf("\n\n")
+	fmt.Printf("\n目录结构:\n")
 	tree(servicePath, 1, true)
+
+	fmt.Printf("\n")
+
+	fmt.Printf("编译协议:\n")
+	fmt.Printf("    cd %v\n", servicePath)
+	fmt.Printf("    protoc --proto_path=. --go_out=. --joymicro_out=. proto/%v.proto\n", service)
+	fmt.Printf("\n\n")
+
+	fmt.Printf("修改导入路径:\n")
+	fmt.Printf("    修改{main.go, handler/handler.go}的导入路径使编译正确。\n")
 }
 
 func (nh *NewHandler) outputHandlerDir(servicePath string) {
@@ -109,8 +121,8 @@ func (nh *NewHandler) outputMainFile(service string) {
 	mfd.out()
 	mfd.out("import (")
 	mfd.out("\t\"joynova.com/joynova/joymicro/service\"")
-	mfd.out("\t\"shop/proto\"")
-	mfd.out("\t\"shop/handler\"")
+	mfd.out("\t\"", service, "/proto\"")
+	mfd.out("\t\"", service, "/handler\"")
 	mfd.out(")")
 	mfd.out()
 	mfd.out()
@@ -123,7 +135,7 @@ func (nh *NewHandler) outputMainFile(service string) {
 
 	protoService := []rune(service)
 	protoService[0] -= 32
-	mfd.out("\terr = proto.Register", string(protoService), "Handler(s, new(handler.ShopHandler))")
+	mfd.out("\terr = proto.Register", string(protoService), "Handler(s, new(handler.",string(protoService) ,"Handler))")
 	mfd.out("\tif err != nil {")
 	mfd.out("\t\tpanic(err)")
 	mfd.out("\t}")

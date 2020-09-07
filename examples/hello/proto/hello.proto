@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+
+package proto;
+
+service Hello {
+	 rpc Hello(Request) returns (Response) {};
+}
+
+
+message Request {
+	string name = 1;
+}
+
+
+message Response {
+	int32 errCode = 1;
+	int32 msg =2 ;
+}

@@ -170,12 +170,14 @@ func (g *joymicro) generateService(file *generator.FileDescriptor, service *pb.S
 	//g.P("}")
 	//g.P()
 
+	g.P("var serviceName = \"", origServName, "\"")
+
 	g.P()
 	g.P("// Client API for ", servName, " service")
 	g.P()
 
 	// Client interface.
-	g.P("// ", servAlias, " servName服务客户端接口")
+	g.P("// ", servAlias, " ", servName, "服务客户端接口")
 	g.P("type ", servAlias, " interface {")
 	for i, method := range service.Method {
 		g.gen.PrintComments(fmt.Sprintf("%s,2,%d", path, i)) // 2 means method in a service.
@@ -203,7 +205,7 @@ func (g *joymicro) generateService(file *generator.FileDescriptor, service *pb.S
 		g.P(`name = "`, serviceName, `"`)
 		g.P("}")
 	*/
-	g.P("c := client.New(\"", servName, "\", etcdAddrs, timeout, isPermanent)")
+	g.P("c := client.New(serviceName, etcdAddrs, timeout, isPermanent)")
 	g.P("return &", unexport(servAlias), "{")
 	g.P("c: c,")
 	g.P("name: \"", servName, "\",")
@@ -246,25 +248,25 @@ func (g *joymicro) generateService(file *generator.FileDescriptor, service *pb.S
 	g.P("// Register", servName, "Handler", " 注册服务，调用方需提前创建服务器并注册服务回调")
 	if hasPeer2Peer {
 		g.P("func Register", servName, "Handler(s *", serverPkg, ".ServicesManager, hdlr ", serverType+", peerInfo *server.Peer2Peer) error {")
-		g.P("err := s.RegisterOneService(\"", servName, "\", hdlr, ", "peerInfo)")
+		g.P("err := s.RegisterOneService(serviceName, hdlr, ", "peerInfo)")
 	} else {
 		g.P("func Register", servName, "Handler(s *", serverPkg, ".ServicesManager, hdlr ", serverType+") error {")
-		g.P("err := s.RegisterOneService(\"", servName, "\", hdlr, ", "nil)")
+		g.P("err := s.RegisterOneService(serviceName, hdlr, ", "nil)")
 	}
 
 	g.P("return err")
 	g.P("}")
 
-	g.P("type ", unexport(servName), "Handler struct {")
-	g.P(serverType)
-	g.P("}")
+	//g.P("type ", unexport(servName), "Handler struct {")
+	//g.P(serverType)
+	//g.P("}")
 
 	// Server handler implementations.
-	var handlerNames []string
-	for _, method := range service.Method {
-		hname := g.generateServerMethod(servName, method)
-		handlerNames = append(handlerNames, hname)
-	}
+	//var handlerNames []string
+	//for _, method := range service.Method {
+	//	hname := g.generateServerMethod(servName, method)
+	//	handlerNames = append(handlerNames, hname)
+	//}
 }
 
 // generateEndpoint creates the api endpoint
@@ -549,4 +551,11 @@ func (g *joymicro) generateServerMethod(servName string, method *pb.MethodDescri
 	}
 
 	return hname
+}
+
+func ToFirstUpper(str string) string {
+	str1 := []rune(str)
+	str1[0] -= 32
+	str = string(str1)
+	return str
 }

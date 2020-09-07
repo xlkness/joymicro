@@ -69,13 +69,17 @@ func (nh *NewHandler) newServiceDir(servicePath string) {
 
 	fmt.Printf("\n")
 
-	fmt.Printf("编译协议:\n")
+	fmt.Printf("你还需要做以下步骤:\n")
+	fmt.Printf("1.编译协议:\n")
 	fmt.Printf("    cd %v\n", servicePath)
 	fmt.Printf("    protoc --proto_path=. --go_out=. --joymicro_out=. proto/%v.proto\n", service)
-	fmt.Printf("\n\n")
+	fmt.Printf("\n")
 
-	fmt.Printf("修改导入路径:\n")
-	fmt.Printf("    修改{main.go, handler/handler.go}的导入路径使编译正确。\n")
+	fmt.Printf("2.修改导入路径:\n")
+	fmt.Printf("    修改{main.go, handler/handler.go}的导入路径使编译正确\n\n")
+
+	fmt.Printf("3.修改main函数参数:\n")
+	fmt.Printf("    将main函数里的服务监听地址和etcd地址改为你的\n")
 }
 
 func (nh *NewHandler) outputHandlerDir(servicePath string) {

@@ -8,8 +8,9 @@ import (
 
 func Desc() string {
 	return fmt.Sprintf("Description:\n") +
-		fmt.Sprintf("   joymicro 是一个微服务框架，根据protocolbuf定义文件生成服务和对应调用客户端。\n\n") +
-		fmt.Sprintf("   使用%v [command] -h|--help或者%v help [command]来获取帮助。\n", os.Args[0], os.Args[0])
+		fmt.Sprintf("   joymicro是一个微服务框架，根据proto3服务定义文件生成服务和对应调用客户端，\n") +
+		fmt.Sprintf("   joymicro使用rpcx作为服务调用框架，使用etcd作为注册中心。\n\n") +
+		fmt.Sprintf("   使用%v [command] -h|--help或者%v help [command]来获取帮助。\n\n", os.Args[0], os.Args[0])
 }
 
 func Usage() string {

@@ -3,6 +3,7 @@ package service
 import (
 	"fmt"
 	"github.com/smallnest/rpcx/server"
+	"joynova.com/joynova/joymicro/log"
 	"joynova.com/joynova/joymicro/registry"
 	"joynova.com/joynova/joymicro/util"
 )
@@ -87,5 +88,6 @@ func (m *ServicesManager) checkDuplicateService(services ...string) error {
 // Run 启动rpc服务
 // 注意：register过程必须在start之前
 func (m *ServicesManager) Run() error {
+	log.Debug("this is debug ", "log")
 	return m.rpcserver.Serve("tcp", m.Addr)
 }

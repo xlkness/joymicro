@@ -1,5 +1,6 @@
 syntax = "proto3";
 
+import "hello1.proto";
 
 package proto;
 
@@ -9,7 +10,7 @@ service Hello {
 
 
 message Request {
-	string name = 1;
+	User user = 1;
 }
 
 

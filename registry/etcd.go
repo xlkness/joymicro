@@ -15,7 +15,7 @@ func GetEtcdRegistryServerPlugin(serviceAddr string, etcdAddress []string) (serv
 		EtcdServers:    etcdAddress,
 		BasePath:       DefaultBaseDir,
 		Metrics:        metrics.NewRegistry(),
-		UpdateInterval: time.Second * time.Duration(60),
+		UpdateInterval: time.Second * time.Duration(3),
 	}
 	err := r.Start()
 	return r, err

@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-	"github.com/gogo/protobuf/jsonpb"
 	"joynova.com/joynova/joymicro/examples/hello/handler"
 	"joynova.com/joynova/joymicro/examples/hello/proto"
 	"joynova.com/joynova/joymicro/service"

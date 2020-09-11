@@ -110,7 +110,7 @@ func (nh *NewHandler) outputProtoDir(servicePath string) {
 
 func (nh *NewHandler) outputMainFile(service string) {
 	fileName := service + "/main.go"
-	fd, err := os.OpenFile(fileName, os.O_RDWR|os.O_CREATE,os.ModePerm)
+	fd, err := os.OpenFile(fileName, os.O_RDWR|os.O_CREATE, os.ModePerm)
 	if err != nil {
 		fmt.Printf("创建文件 %v 错误:%v\n", fileName, err)
 		os.Exit(1)
@@ -132,20 +132,20 @@ func (nh *NewHandler) outputMainFile(service string) {
 	mfd.out()
 
 	mfd.out("func main() {")
-	mfd.out("\ts, err := service.New(\":8888\", []string{\"127.0.0.1:2382\"})")
+	mfd.out("\ts, err := service.New(\"127.0.0.1:8888\", []string{\"127.0.0.1:2382\"})")
 	mfd.out("\t\tif err != nil {")
 	mfd.out("\t\tpanic(err)")
 	mfd.out("\t}")
 
 	protoService := []rune(service)
 	protoService[0] -= 32
-	mfd.out("\terr = proto.Register", string(protoService), "Handler(s, new(handler.",string(protoService) ,"Handler))")
+	mfd.out("\terr = proto.Register", string(protoService), "Handler(s, new(handler.", string(protoService), "Handler))")
 	mfd.out("\tif err != nil {")
 	mfd.out("\t\tpanic(err)")
 	mfd.out("\t}")
 	mfd.out()
 	//mfd.out("\tfmt.Printf(\"start service ...\\n\")")
-	mfd.out("\terr = s.Run()")
+	mfd.out("\terr = s.Run(\":8888\")")
 	mfd.out("\tif err != nil {")
 	mfd.out("\t\tpanic(err)")
 	mfd.out("\t}")
@@ -154,7 +154,7 @@ func (nh *NewHandler) outputMainFile(service string) {
 
 func (nh *NewHandler) newHandler(service, handlerDir string) {
 	fileName := handlerDir + "/handler.go"
-	fd, err := os.OpenFile(fileName, os.O_RDWR|os.O_CREATE,os.ModePerm)
+	fd, err := os.OpenFile(fileName, os.O_RDWR|os.O_CREATE, os.ModePerm)
 	if err != nil {
 		fmt.Printf("创建文件 %v 错误:%v\n", fileName, err)
 		os.Exit(1)
@@ -187,7 +187,7 @@ func (nh *NewHandler) newHandler(service, handlerDir string) {
 
 func (nh *NewHandler) newProto(service, protoDir string) {
 	fileName := protoDir + "/" + service + ".proto"
-	fd, err := os.OpenFile(fileName, os.O_RDWR|os.O_CREATE,os.ModePerm)
+	fd, err := os.OpenFile(fileName, os.O_RDWR|os.O_CREATE, os.ModePerm)
 	if err != nil {
 		fmt.Printf("创建文件 %v 错误:%v\n", fileName, err)
 		os.Exit(1)
@@ -231,7 +231,7 @@ func tree(dir string, deepth int, prelast bool) {
 
 	fmt.Printf("%v\n", filepath.Base(dir))
 	for i, v := range files {
-		if i == len(files) - 1 {
+		if i == len(files)-1 {
 			treeGraph(deepth, prelast, true)
 			prelast = true
 		} else {
@@ -239,7 +239,7 @@ func tree(dir string, deepth int, prelast bool) {
 			prelast = false
 		}
 		if v.IsDir() {
-			tree(dir + "/" + v.Name() , deepth+1, prelast)
+			tree(dir+"/"+v.Name(), deepth+1, prelast)
 		} else {
 			fmt.Printf("%v\n", filepath.Base(v.Name()))
 		}
@@ -255,24 +255,24 @@ func treeGraph(deepth int, prelast, last bool) {
 		}
 	} else {
 		if prelast && last {
-			for i := 0; i < deepth - 1; i++ {
+			for i := 0; i < deepth-1; i++ {
 				fmt.Printf("    ")
 			}
 			fmt.Printf("└── ")
 		} else if !prelast && last {
 			fmt.Printf("│   ")
-			for i := 0; i < deepth - 2; i++ {
+			for i := 0; i < deepth-2; i++ {
 				fmt.Printf(" ")
 			}
 			fmt.Printf("└── ")
 		} else if !prelast && !last {
 			fmt.Printf("│   ")
-			for i := 0; i < deepth - 2; i++ {
+			for i := 0; i < deepth-2; i++ {
 				fmt.Printf(" ")
 			}
 			fmt.Printf("│── ")
 		} else if prelast && !last {
-			for i := 0; i < deepth - 1; i++ {
+			for i := 0; i < deepth-1; i++ {
 				fmt.Printf("    ")
 			}
 			fmt.Printf("│── ")
@@ -284,7 +284,7 @@ type myfd struct {
 	fd *os.File
 }
 
-func (mf *myfd) out(args...interface{}) {
+func (mf *myfd) out(args ...interface{}) {
 	str := fmt.Sprint(args...)
 	if str != "" {
 		mf.fd.WriteString(str)

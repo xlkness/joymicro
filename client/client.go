@@ -67,7 +67,9 @@ func New(service string, etcdServerAddrs []string, callTimeout time.Duration, is
 
 // Call 根据负载算法从服务中挑一个调用
 func (s *Service) Call(ctx context.Context, method string, args interface{}, reply interface{}) error {
-	return s.client.Call(ctx, method, args, reply)
+	newCtx, f := context.WithTimeout(ctx, s.callTimeout)
+	defer f()
+	return s.client.Call(newCtx, method, args, reply)
 }
 
 /*
@@ -76,7 +78,9 @@ func (s *Service) Call(ctx context.Context, method string, args interface{}, rep
 
 // CallAll 调用所有节点，有一个调用返回错误，整个调用都错误
 func (s *Service) CallAll(ctx context.Context, method string, args interface{}, reply interface{}) error {
-	return s.client.Broadcast(ctx, method, args, reply)
+	newCtx, f := context.WithTimeout(ctx, s.callTimeout*3)
+	defer f()
+	return s.client.Broadcast(newCtx, method, args, reply)
 }
 
 // CallPeer 指定服务中某个节点调用
@@ -86,7 +90,9 @@ func (s *Service) CallPeer(ctx context.Context, peerKey string, method string, a
 		return fmt.Errorf("service %v not found peer to peer service client:%v", s.ServiceName, peerClient)
 	}
 
-	return peerClient.client.Call(ctx, method, args, reply)
+	newCtx, f := context.WithTimeout(ctx, s.callTimeout*3)
+	defer f()
+	return peerClient.client.Call(newCtx, method, args, reply)
 }
 
 func (s *Service) getPeer2PeerClient(peerKey string) *PeerService {

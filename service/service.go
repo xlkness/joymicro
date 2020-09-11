@@ -26,7 +26,7 @@ type ServicesManager struct {
 
 // New 创建一个服务
 // service:服务器名称
-// addr:服务地址
+// addr:当前节点服务对外可以访问的地址，不是监听地址，必须为"ip+:+port"格式
 // etcdServerAddrs:etcd服务地址
 func New(addr string, etcdServerAddrs []string) (*ServicesManager, error) {
 	etcdServerAddrs = util.PreHandleEtcdHttpAddrs(etcdServerAddrs)
@@ -85,7 +85,8 @@ func (m *ServicesManager) checkDuplicateService(services ...string) error {
 }
 
 // Run 启动rpc服务
+// addr：监听地址，可以忽略ip，例如":8888"格式
 // 注意：register过程必须在start之前
-func (m *ServicesManager) Run() error {
-	return m.rpcserver.Serve("tcp", m.Addr)
+func (m *ServicesManager) Run(addr string) error {
+	return m.rpcserver.Serve("tcp", addr)
 }

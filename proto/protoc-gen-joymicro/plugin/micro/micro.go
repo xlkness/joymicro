@@ -181,7 +181,11 @@ func (g *joymicro) generateService(file *generator.FileDescriptor, service *pb.S
 	g.P("type ", servAlias, " interface {")
 	for i, method := range service.Method {
 		g.gen.PrintComments(fmt.Sprintf("%s,2,%d", path, i)) // 2 means method in a service.
-		g.P(g.generateClientSignature(servName, method))
+		g.P(g.generateClientSignature(servName, method, false, "", ""))
+		g.P(g.generateClientSignature(servName, method, true, "All", ""))
+		if hasPeer2Peer {
+			g.P(g.generateClientSignature(servName, method, true, "Peer", "peerKey"))
+		}
 	}
 	g.P("}")
 	g.P()
@@ -226,7 +230,7 @@ func (g *joymicro) generateService(file *generator.FileDescriptor, service *pb.S
 			descExpr = fmt.Sprintf("&%s.Streams[%d]", serviceDescVar, streamIndex)
 			streamIndex++
 		}
-		g.generateClientMethod(serviceName, servName, serviceDescVar, method, descExpr)
+		g.generateClientMethod(serviceName, servName, serviceDescVar, method, descExpr, hasPeer2Peer)
 	}
 
 	g.P("// Server API for ", servName, " service")
@@ -316,7 +320,8 @@ func (g *joymicro) generateEndpoint(servName string, method *pb.MethodDescriptor
 }
 
 // generateClientSignature returns the client-side signature for a method.
-func (g *joymicro) generateClientSignature(servName string, method *pb.MethodDescriptorProto) string {
+func (g *joymicro) generateClientSignature(servName string, method *pb.MethodDescriptorProto,
+	hasPeer2Peer bool, attach string, peerKey string) string {
 	origMethName := method.GetName()
 	methName := generator.CamelCase(origMethName)
 	if reservedClientName[methName] {
@@ -331,10 +336,20 @@ func (g *joymicro) generateClientSignature(servName string, method *pb.MethodDes
 		respName = servName + "_" + generator.CamelCase(origMethName) + "Service"
 	}
 
+	if hasPeer2Peer {
+		if peerKey != "" {
+			return fmt.Sprintf("%s(ctx %s.Context, %s%s) (%s, error)", methName+attach, contextPkg,
+				"peerKey string", reqArg, respName)
+		} else {
+			return fmt.Sprintf("%s(ctx %s.Context%s) (%s, error)", methName+attach, contextPkg, reqArg, respName)
+		}
+	}
+
 	return fmt.Sprintf("%s(ctx %s.Context%s) (%s, error)", methName, contextPkg, reqArg, respName)
 }
 
-func (g *joymicro) generateClientMethod(reqServ, servName, serviceDescVar string, method *pb.MethodDescriptorProto, descExpr string) {
+func (g *joymicro) generateClientMethod(reqServ, servName, serviceDescVar string,
+	method *pb.MethodDescriptorProto, descExpr string, hasPeer2Peer bool) {
 	//reqMethod := fmt.Sprintf("%s.%s", servName, method.GetName())
 	//methName := generator.CamelCase(method.GetName())
 	//inType := g.typeName(method.GetInputType())
@@ -347,7 +362,7 @@ func (g *joymicro) generateClientMethod(reqServ, servName, serviceDescVar string
 		servAlias = strings.TrimSuffix(servAlias, "Service")
 	}
 
-	g.P("func (c *", unexport(servAlias), ") ", g.generateClientSignature(servName, method), "{")
+	g.P("func (c *", unexport(servAlias), ") ", g.generateClientSignature(servName, method, false, "", ""), "{")
 	if !method.GetServerStreaming() && !method.GetClientStreaming() {
 		//g.P(`req := c.c.Call(ctx, "`, reqMethod, `", in)`)
 		g.P("out := new(", outType, ")")
@@ -357,7 +372,33 @@ func (g *joymicro) generateClientMethod(reqServ, servName, serviceDescVar string
 		g.P("return out, nil")
 		g.P("}")
 		g.P()
-		return
+	}
+
+	g.P("func (c *", unexport(servAlias), ") ", g.generateClientSignature(servName, method, true, "All", ""), "{")
+	if !method.GetServerStreaming() && !method.GetClientStreaming() {
+		//g.P(`req := c.c.Call(ctx, "`, reqMethod, `", in)`)
+		g.P("out := new(", outType, ")")
+		// TODO: Pass descExpr to Invoke.
+		g.P("err := ", `c.c.CallAll(ctx, "`, method.GetName(), `", in, out)`)
+		g.P("if err != nil { return nil, err }")
+		g.P("return out, nil")
+		g.P("}")
+		g.P()
+	}
+
+	if hasPeer2Peer {
+		g.P("func (c *", unexport(servAlias), ") ",
+			g.generateClientSignature(servName, method, true, "Peer", "peerKey"), "{")
+		if !method.GetServerStreaming() && !method.GetClientStreaming() {
+			//g.P(`req := c.c.Call(ctx, "`, reqMethod, `", in)`)
+			g.P("out := new(", outType, ")")
+			// TODO: Pass descExpr to Invoke.
+			g.P("err := ", `c.c.CallPeer(ctx, peerKey, "`, method.GetName(), `", in, out)`)
+			g.P("if err != nil { return nil, err }")
+			g.P("return out, nil")
+			g.P("}")
+			g.P()
+		}
 	}
 
 	//streamType := unexport(servAlias) + methName

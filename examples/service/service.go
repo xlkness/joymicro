@@ -16,7 +16,7 @@ func (s *Shop) Buy(ctx context.Context, req *int, resp *int) error {
 }
 
 func main() {
-	s, err := service.New(":8888", []string{"192.168.1.188:2332"})
+	s, err := service.New("192.168.1.188:8888", []string{"192.168.1.188:2332"})
 	if err != nil {
 		panic(err)
 	}
@@ -30,5 +30,5 @@ func main() {
 
 	fmt.Printf("prepare start service...\n")
 
-	s.Run()
+	s.Run(":8888")
 }

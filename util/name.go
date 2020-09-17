@@ -6,7 +6,7 @@ import (
 )
 
 func GetServicePeer2Peer(service, peerKey string) string {
-	return fmt.Sprintf("%s-%d", service, peerKey)
+	return fmt.Sprintf("%s-%s", service, peerKey)
 }
 
 // preHandleEtcdHttpAddrs rpcx引用的docker初始化etcd的库会将地址默认加http://

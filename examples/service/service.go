@@ -23,7 +23,9 @@ func main() {
 
 	fmt.Printf("prepare register service...\n")
 
-	err = s.RegisterOneService("micro.shop", new(Shop), nil)
+	err = s.RegisterOneService("micro/micro.shop", new(Shop), &service.Peer2Peer{
+		PeerKey: "lk",
+	})
 	if err != nil {
 		panic(err)
 	}

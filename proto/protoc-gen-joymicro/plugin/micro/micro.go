@@ -142,6 +142,7 @@ func (g *joymicro) generateService(file *generator.FileDescriptor, service *pb.S
 
 	origServName := service.GetName()
 	serviceName := strings.ToLower(service.GetName())
+	lowerServiceName := serviceName
 	if pkg := file.GetPackage(); pkg != "" {
 		serviceName = pkg
 	}
@@ -170,7 +171,7 @@ func (g *joymicro) generateService(file *generator.FileDescriptor, service *pb.S
 	//g.P("}")
 	//g.P()
 
-	g.P("var serviceName = \"", origServName, "\"")
+	g.P("var serviceName = \"", lowerServiceName, "\"")
 
 	g.P()
 	g.P("// Client API for ", servName, " service")
@@ -212,7 +213,7 @@ func (g *joymicro) generateService(file *generator.FileDescriptor, service *pb.S
 	g.P("c := client.New(serviceName, etcdAddrs, timeout, isPermanent)")
 	g.P("return &", unexport(servAlias), "{")
 	g.P("c: c,")
-	g.P("name: \"", servName, "\",")
+	g.P("name: \"", lowerServiceName, "\",")
 	g.P("}")
 	g.P("}")
 	g.P()
@@ -252,10 +253,10 @@ func (g *joymicro) generateService(file *generator.FileDescriptor, service *pb.S
 	g.P("// Register", servName, "Handler", " 注册服务，调用方需提前创建服务器并注册服务回调")
 	if hasPeer2Peer {
 		g.P("func Register", servName, "Handler(s *", serverPkg, ".ServicesManager, hdlr ", serverType+", peerInfo *server.Peer2Peer) error {")
-		g.P("err := s.RegisterOneService(serviceName, hdlr, ", "peerInfo)")
+		g.P("err := s.RegisterOneService(serviceName + \"/\" + serviceName, hdlr, ", "peerInfo)")
 	} else {
 		g.P("func Register", servName, "Handler(s *", serverPkg, ".ServicesManager, hdlr ", serverType+") error {")
-		g.P("err := s.RegisterOneService(serviceName, hdlr, ", "nil)")
+		g.P("err := s.RegisterOneService(serviceName + \"/\" + serviceName, hdlr, ", "nil)")
 	}
 
 	g.P("return err")

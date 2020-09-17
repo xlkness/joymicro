@@ -30,7 +30,7 @@ const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 // Reference imports to suppress errors if they are not otherwise used.
 var _ context.Context
 
-var serviceName = "Shop"
+var serviceName = "shop"
 
 // Client API for Shop service
 
@@ -53,7 +53,7 @@ func NewShopService(etcdAddrs []string, timeout time.Duration, isPermanent bool)
 	c := client.New(serviceName, etcdAddrs, timeout, isPermanent)
 	return &shopService{
 		c:    c,
-		name: "Shop",
+		name: "shop",
 	}
 }
 
@@ -94,6 +94,6 @@ type ShopHandler interface {
 
 // RegisterShopHandler 注册服务，调用方需提前创建服务器并注册服务回调
 func RegisterShopHandler(s *server.ServicesManager, hdlr ShopHandler, peerInfo *server.Peer2Peer) error {
-	err := s.RegisterOneService(serviceName, hdlr, peerInfo)
+	err := s.RegisterOneService(serviceName+"/"+serviceName, hdlr, peerInfo)
 	return err
 }

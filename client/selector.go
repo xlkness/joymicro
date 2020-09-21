@@ -27,8 +27,13 @@ func (ms *PeerSelector) Select(ctx context.Context, servicePath, serviceMethod s
 	key := ctx.Value("select_key")
 
 	if key == nil {
-		return ms.servers[rand.Intn(len(ms.servers))]
-		//return ""
+		server := ms.servers[rand.Intn(len(ms.servers))]
+		strs := strings.SplitN(server, "@", 2)
+		if len(strs) != 2 {
+			return fmt.Sprintf("etcd server key parse error:%v", server)
+		}
+
+		return "tcp@" + strs[1]
 	}
 
 	for _, server := range ms.servers {

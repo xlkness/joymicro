@@ -9,9 +9,9 @@ import (
 )
 
 // todo etcd插件不支持注册函数服务
-func GetEtcdRegistryServerPlugin(serviceAddr string, etcdAddress []string) (server.Plugin, error) {
+func GetEtcdRegistryServerPlugin(key string, serviceAddr string, etcdAddress []string) (server.Plugin, error) {
 	r := &serverplugin.EtcdRegisterPlugin{
-		ServiceAddress: "tcp@" + serviceAddr,
+		ServiceAddress: key + "@" + serviceAddr,
 		EtcdServers:    etcdAddress,
 		BasePath:       DefaultBaseDir,
 		Metrics:        metrics.NewRegistry(),

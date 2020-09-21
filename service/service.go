@@ -10,12 +10,8 @@ import (
 /*
 
  */
-type Peer2Peer struct {
-	PeerKey string // 点对点通信的主键
-}
 type Service struct {
-	Service  string
-	PeerInfo *Peer2Peer
+	Service string
 }
 
 type ServicesManager struct {
@@ -28,7 +24,7 @@ type ServicesManager struct {
 // service:服务器名称
 // addr:当前节点服务对外可以访问的地址，不是监听地址，必须为"ip+:+port"格式
 // etcdServerAddrs:etcd服务地址
-func New(addr string, etcdServerAddrs []string) (*ServicesManager, error) {
+func New(key string, addr string, etcdServerAddrs []string) (*ServicesManager, error) {
 	etcdServerAddrs = util.PreHandleEtcdHttpAddrs(etcdServerAddrs)
 	m := &ServicesManager{
 		Addr:      addr,
@@ -37,7 +33,7 @@ func New(addr string, etcdServerAddrs []string) (*ServicesManager, error) {
 	}
 
 	// 添加etcd注册中心
-	r, err := registry.GetEtcdRegistryServerPlugin(m.Addr, etcdServerAddrs)
+	r, err := registry.GetEtcdRegistryServerPlugin(key, m.Addr, etcdServerAddrs)
 	if err != nil {
 		return nil, err
 	}
@@ -49,24 +45,10 @@ func New(addr string, etcdServerAddrs []string) (*ServicesManager, error) {
 // RegisterOneService 注册一个服务
 // service：服务名
 // handler：回调处理
-// peer2peer：是否需要点对点功能， 不需要就给nil，需要就给一个service内唯一的主键
-func (m *ServicesManager) RegisterOneService(service string, handler interface{}, peer2peer *Peer2Peer) error {
-	if peer2peer != nil {
-		var peer2peerService string
-		peer2peerService = util.GetServicePeer2Peer(service, peer2peer.PeerKey)
-		err := m.checkDuplicateService(service, peer2peerService)
-		if err != nil {
-			return err
-		}
-		err = m.rpcserver.RegisterName(peer2peerService, handler, "")
-		if err != nil {
-			return err
-		}
-	} else {
-		err := m.checkDuplicateService(service)
-		if err != nil {
-			return err
-		}
+func (m *ServicesManager) RegisterOneService(service string, handler interface{}) error {
+	err := m.checkDuplicateService(service)
+	if err != nil {
+		return err
 	}
 
 	return m.rpcserver.RegisterName(service, handler, "")

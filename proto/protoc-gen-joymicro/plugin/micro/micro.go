@@ -94,7 +94,20 @@ func (g *joymicro) Generate(file *generator.FileDescriptor) {
 			}
 		}
 		service.Method = newMethods
-		g.generateService(file, service, i, hasPeer2Peer)
+
+		lowerServiceName := strings.ToLower(service.GetName())
+		g.P("var serviceName = \"", lowerServiceName, "\"")
+		g.P()
+
+		g.peerGenerateServiceInterface(file, service, i)
+		g.peerGenerateNewService(file, service, i, hasPeer2Peer)
+		g.peerGenerateServiceUnexport(file, service, i, hasPeer2Peer)
+		//g.peerGenerateWrapService(file, service, i)
+		g.peerGenerateServiceHandlerInterface(file, service, i)
+		g.peerGenerateRegisterServiceHandler(file, service, i)
+		//g.peerGenerateWarpServiceHandler(file, service, i)
+
+		//g.generateService(file, service, i, hasPeer2Peer)
 	}
 }
 
@@ -137,12 +150,15 @@ func unexport(s string) string {
 }
 
 // generateService generates all the code for the named service.
-func (g *joymicro) generateService(file *generator.FileDescriptor, service *pb.ServiceDescriptorProto, index int, hasPeer2Peer bool) {
+func (g *joymicro) generateService1(file *generator.FileDescriptor, service *pb.ServiceDescriptorProto, index int, hasPeer2Peer bool) {
 	path := fmt.Sprintf("6,%d", index) // 6 means service.
 
+	// 大写的服务名
 	origServName := service.GetName()
-	serviceName := strings.ToLower(service.GetName())
-	lowerServiceName := serviceName
+	// 小写的服务名
+	lowerServiceName := strings.ToLower(service.GetName())
+	// 协议文件夹包名
+	serviceName := lowerServiceName
 	if pkg := file.GetPackage(); pkg != "" {
 		serviceName = pkg
 	}
@@ -180,14 +196,14 @@ func (g *joymicro) generateService(file *generator.FileDescriptor, service *pb.S
 	// Client interface.
 	g.P("// ", servAlias, " ", servName, "服务客户端接口")
 	g.P("type ", servAlias, " interface {")
-	for i, method := range service.Method {
-		g.gen.PrintComments(fmt.Sprintf("%s,2,%d", path, i)) // 2 means method in a service.
-		g.P(g.generateClientSignature(servName, method, false, "", ""))
-		g.P(g.generateClientSignature(servName, method, true, "All", ""))
-		if hasPeer2Peer {
-			g.P(g.generateClientSignature(servName, method, true, "Peer", "peerKey"))
-		}
-	}
+	//for i, method := range service.Method {
+	//	g.gen.PrintComments(fmt.Sprintf("%s,2,%d", path, i)) // 2 means method in a service.
+	//	g.P(g.generateClientSignature(servName, method, false, "", ""))
+	//	g.P(g.generateClientSignature(servName, method, true, "All", ""))
+	//	if hasPeer2Peer {
+	//		g.P(g.generateClientSignature(servName, method, true, "Peer", "peerKey"))
+	//	}
+	//}
 	g.P("}")
 	g.P()
 
@@ -210,7 +226,11 @@ func (g *joymicro) generateService(file *generator.FileDescriptor, service *pb.S
 		g.P(`name = "`, serviceName, `"`)
 		g.P("}")
 	*/
-	g.P("c := client.New(serviceName, etcdAddrs, timeout, isPermanent)")
+	if hasPeer2Peer {
+		g.P("c := client.New(serviceName + \"/\" + serviceName, etcdAddrs, timeout, isPermanent)")
+	} else {
+		g.P("c := client.New(serviceName, etcdAddrs, timeout, isPermanent)")
+	}
 	g.P("return &", unexport(servAlias), "{")
 	g.P("c: c,")
 	g.P("name: \"", lowerServiceName, "\",")
@@ -256,7 +276,141 @@ func (g *joymicro) generateService(file *generator.FileDescriptor, service *pb.S
 		g.P("err := s.RegisterOneService(serviceName + \"/\" + serviceName, hdlr, ", "peerInfo)")
 	} else {
 		g.P("func Register", servName, "Handler(s *", serverPkg, ".ServicesManager, hdlr ", serverType+") error {")
-		g.P("err := s.RegisterOneService(serviceName + \"/\" + serviceName, hdlr, ", "nil)")
+		g.P("err := s.RegisterOneService(serviceName, hdlr, ", "nil)")
+	}
+
+	g.P("return err")
+	g.P("}")
+
+	//g.P("type ", unexport(servName), "Handler struct {")
+	//g.P(serverType)
+	//g.P("}")
+
+	// Server handler implementations.
+	//var handlerNames []string
+	//for _, method := range service.Method {
+	//	hname := g.generateServerMethod(servName, method)
+	//	handlerNames = append(handlerNames, hname)
+	//}
+}
+
+// generateService generates all the code for the named service.
+func (g *joymicro) generateService(file *generator.FileDescriptor, service *pb.ServiceDescriptorProto, index int, hasPeer2Peer bool) {
+	path := fmt.Sprintf("6,%d", index) // 6 means service.
+
+	// 大写的服务名
+	origServName := service.GetName()
+	// 小写的服务名
+	lowerServiceName := strings.ToLower(service.GetName())
+	// 协议文件夹包名
+	serviceName := lowerServiceName
+	if pkg := file.GetPackage(); pkg != "" {
+		serviceName = pkg
+	}
+	// 驼峰服务名
+	servName := generator.CamelCase(origServName)
+	// 驼峰服务Service
+	servAlias := servName + "Service"
+
+	// strip suffix
+	if strings.HasSuffix(servAlias, "ServiceService") {
+		servAlias = strings.TrimSuffix(servAlias, "Service")
+	}
+
+	g.P("var serviceName = \"", lowerServiceName, "\"")
+
+	g.P("type reqWrapper struct {")
+	g.P("peerKey string")
+	g.P("req ")
+
+	//g.P()
+	//g.P("// Client API for ", servAlias)
+	//g.P()
+
+	// Client interface.
+	//g.P("// ", servAlias, " ", servName, "服务客户端接口")
+	g.P("type ", servAlias, " interface {")
+	//for i, method := range service.Method {
+	//	//g.gen.PrintComments(fmt.Sprintf("%s,2,%d", path, i)) // 2 means method in a service.
+	//	g.P(g.generateClientSignature(servName, method, false, "", ""))
+	//	g.P(g.generateClientSignature(servName, method, true, "All", ""))
+	//	if hasPeer2Peer {
+	//		g.P(g.generateClientSignature(servName, method, true, "Peer", "peerKey"))
+	//	}
+	//}
+	g.P("}")
+	g.P()
+
+	// Client structure.
+	g.P("// ", unexport(servAlias), " ", servName, "服务客户端")
+	g.P("type ", unexport(servAlias), " struct {")
+	g.P("c *", clientPkg, ".Service")
+	g.P("name string")
+	g.P("}")
+	g.P()
+
+	// NewClient factory.
+	g.P("// New", servAlias, " 创建", servAlias, "客户端")
+	g.P("func New", servAlias, " (etcdAddrs []string, timeout time.Duration, isPermanent bool) ", servAlias, " {")
+	/*
+		g.P("if c == nil {")
+		g.P("c = ", clientPkg, ".NewClient()")
+		g.P("}")
+		g.P("if len(name) == 0 {")
+		g.P(`name = "`, serviceName, `"`)
+		g.P("}")
+	*/
+	if hasPeer2Peer {
+		g.P("c := client.New(serviceName + \"/\" + serviceName, etcdAddrs, timeout, isPermanent)")
+	} else {
+		g.P("c := client.New(serviceName, etcdAddrs, timeout, isPermanent)")
+	}
+	g.P("return &", unexport(servAlias), "{")
+	g.P("c: c,")
+	g.P("name: \"", lowerServiceName, "\",")
+	g.P("}")
+	g.P("}")
+	g.P()
+	var methodIndex, streamIndex int
+	serviceDescVar := "_" + servName + "_serviceDesc"
+	// Client method implementations.
+	for _, method := range service.Method {
+		var descExpr string
+		if !method.GetServerStreaming() {
+			// Unary RPC method
+			descExpr = fmt.Sprintf("&%s.Methods[%d]", serviceDescVar, methodIndex)
+			methodIndex++
+		} else {
+			// Streaming RPC method
+			descExpr = fmt.Sprintf("&%s.Streams[%d]", serviceDescVar, streamIndex)
+			streamIndex++
+		}
+		g.generateClientMethod(serviceName, servName, serviceDescVar, method, descExpr, hasPeer2Peer)
+	}
+
+	g.P("// Server API for ", servName, " service")
+	g.P()
+
+	// Server interface.
+	serverType := servName + "Handler"
+	g.P("// ", serverType, " 服务回调接口，服务提供方实现并注册")
+	g.P("type ", serverType, " interface {")
+	for i, method := range service.Method {
+		g.gen.PrintComments(fmt.Sprintf("%s,2,%d", path, i)) // 2 means method in a service.
+		g.P(g.generateServerSignature(servName, method))
+	}
+	g.P("}")
+	g.P()
+
+	// Server registration.
+	//g.P("func Register", servName, "Handler(s ", serverPkg, ".Server, hdlr ", serverType, ", opts ...", serverPkg, ".HandlerOption) error {")
+	g.P("// Register", servName, "Handler", " 注册服务，调用方需提前创建服务器并注册服务回调")
+	if hasPeer2Peer {
+		g.P("func Register", servName, "Handler(s *", serverPkg, ".ServicesManager, hdlr ", serverType+", peerInfo *server.Peer2Peer) error {")
+		g.P("err := s.RegisterOneService(serviceName + \"/\" + serviceName, hdlr, ", "peerInfo)")
+	} else {
+		g.P("func Register", servName, "Handler(s *", serverPkg, ".ServicesManager, hdlr ", serverType+") error {")
+		g.P("err := s.RegisterOneService(serviceName, hdlr, ", "nil)")
 	}
 
 	g.P("return err")
@@ -321,33 +475,33 @@ func (g *joymicro) generateEndpoint(servName string, method *pb.MethodDescriptor
 }
 
 // generateClientSignature returns the client-side signature for a method.
-func (g *joymicro) generateClientSignature(servName string, method *pb.MethodDescriptorProto,
-	hasPeer2Peer bool, attach string, peerKey string) string {
-	origMethName := method.GetName()
-	methName := generator.CamelCase(origMethName)
-	if reservedClientName[methName] {
-		methName += "_"
-	}
-	reqArg := ", in *" + g.typeName(method.GetInputType())
-	if method.GetClientStreaming() {
-		reqArg = ""
-	}
-	respName := "*" + g.typeName(method.GetOutputType())
-	if method.GetServerStreaming() || method.GetClientStreaming() {
-		respName = servName + "_" + generator.CamelCase(origMethName) + "Service"
-	}
-
-	if hasPeer2Peer {
-		if peerKey != "" {
-			return fmt.Sprintf("%s(ctx %s.Context, %s%s) (%s, error)", methName+attach, contextPkg,
-				"peerKey string", reqArg, respName)
-		} else {
-			return fmt.Sprintf("%s(ctx %s.Context%s) (%s, error)", methName+attach, contextPkg, reqArg, respName)
-		}
-	}
-
-	return fmt.Sprintf("%s(ctx %s.Context%s) (%s, error)", methName, contextPkg, reqArg, respName)
-}
+//func (g *joymicro) generateClientSignature(servName string, method *pb.MethodDescriptorProto,
+//	hasPeer2Peer bool, attach string, peerKey string) string {
+//	origMethName := method.GetName()
+//	methName := generator.CamelCase(origMethName)
+//	if reservedClientName[methName] {
+//		methName += "_"
+//	}
+//	reqArg := ", in *" + g.typeName(method.GetInputType())
+//	if method.GetClientStreaming() {
+//		reqArg = ""
+//	}
+//	respName := "*" + g.typeName(method.GetOutputType())
+//	if method.GetServerStreaming() || method.GetClientStreaming() {
+//		respName = servName + "_" + generator.CamelCase(origMethName) + "Service"
+//	}
+//
+//	if hasPeer2Peer {
+//		if peerKey != "" {
+//			return fmt.Sprintf("%s(ctx %s.Context, %s%s) (%s, error)", methName+attach, contextPkg,
+//				"peerKey string", reqArg, respName)
+//		} else {
+//			return fmt.Sprintf("%s(ctx %s.Context%s) (%s, error)", methName+attach, contextPkg, reqArg, respName)
+//		}
+//	}
+//
+//	return fmt.Sprintf("%s(ctx %s.Context%s) (%s, error)", methName, contextPkg, reqArg, respName)
+//}
 
 func (g *joymicro) generateClientMethod(reqServ, servName, serviceDescVar string,
 	method *pb.MethodDescriptorProto, descExpr string, hasPeer2Peer bool) {
@@ -363,7 +517,7 @@ func (g *joymicro) generateClientMethod(reqServ, servName, serviceDescVar string
 		servAlias = strings.TrimSuffix(servAlias, "Service")
 	}
 
-	g.P("func (c *", unexport(servAlias), ") ", g.generateClientSignature(servName, method, false, "", ""), "{")
+	//g.P("func (c *", unexport(servAlias), ") ", g.generateClientSignature(servName, method, false, "", ""), "{")
 	if !method.GetServerStreaming() && !method.GetClientStreaming() {
 		//g.P(`req := c.c.Call(ctx, "`, reqMethod, `", in)`)
 		g.P("out := new(", outType, ")")
@@ -375,7 +529,7 @@ func (g *joymicro) generateClientMethod(reqServ, servName, serviceDescVar string
 		g.P()
 	}
 
-	g.P("func (c *", unexport(servAlias), ") ", g.generateClientSignature(servName, method, true, "All", ""), "{")
+	//g.P("func (c *", unexport(servAlias), ") ", g.generateClientSignature(servName, method, true, "All", ""), "{")
 	if !method.GetServerStreaming() && !method.GetClientStreaming() {
 		//g.P(`req := c.c.Call(ctx, "`, reqMethod, `", in)`)
 		g.P("out := new(", outType, ")")
@@ -388,8 +542,8 @@ func (g *joymicro) generateClientMethod(reqServ, servName, serviceDescVar string
 	}
 
 	if hasPeer2Peer {
-		g.P("func (c *", unexport(servAlias), ") ",
-			g.generateClientSignature(servName, method, true, "Peer", "peerKey"), "{")
+		//g.P("func (c *", unexport(servAlias), ") ",
+		//g.generateClientSignature(servName, method, true, "Peer", "peerKey"), "{")
 		if !method.GetServerStreaming() && !method.GetClientStreaming() {
 			//g.P(`req := c.c.Call(ctx, "`, reqMethod, `", in)`)
 			g.P("out := new(", outType, ")")

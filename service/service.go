@@ -24,7 +24,29 @@ type ServicesManager struct {
 // service:服务器名称
 // addr:当前节点服务对外可以访问的地址，不是监听地址，必须为"ip+:+port"格式
 // etcdServerAddrs:etcd服务地址
-func New(key string, addr string, etcdServerAddrs []string) (*ServicesManager, error) {
+func New(addr string, etcdServerAddrs []string) (*ServicesManager, error) {
+	etcdServerAddrs = util.PreHandleEtcdHttpAddrs(etcdServerAddrs)
+	m := &ServicesManager{
+		Addr:      addr,
+		Services:  make([]*Service, 0),
+		rpcserver: server.NewServer(),
+	}
+
+	// 添加etcd注册中心
+	r, err := registry.GetEtcdRegistryServerPlugin("", m.Addr, etcdServerAddrs)
+	if err != nil {
+		return nil, err
+	}
+	m.rpcserver.Plugins.Add(r)
+
+	return m, nil
+}
+
+// NewWithKey 创建一个带主键的服务，用于点对点通信
+// service:服务器名称
+// addr:当前节点服务对外可以访问的地址，不是监听地址，必须为"ip+:+port"格式
+// etcdServerAddrs:etcd服务地址
+func NewWithKey(key string, addr string, etcdServerAddrs []string) (*ServicesManager, error) {
 	etcdServerAddrs = util.PreHandleEtcdHttpAddrs(etcdServerAddrs)
 	m := &ServicesManager{
 		Addr:      addr,

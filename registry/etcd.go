@@ -10,6 +10,9 @@ import (
 
 // todo etcd插件不支持注册函数服务
 func GetEtcdRegistryServerPlugin(key string, serviceAddr string, etcdAddress []string) (server.Plugin, error) {
+	if key == "" {
+		key = "tcp"
+	}
 	r := &serverplugin.EtcdRegisterPlugin{
 		ServiceAddress: key + "@" + serviceAddr,
 		EtcdServers:    etcdAddress,

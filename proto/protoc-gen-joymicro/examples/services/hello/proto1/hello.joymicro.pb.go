@@ -34,6 +34,7 @@ var serviceName = "hello"
 
 type HelloServiceInterface interface {
 	Hello(context.Context, *Request) (*Response, error)
+	HelloAll(context.Context, *Request) (*Response, error)
 }
 
 func NewHelloService(etcdAddrs []string, timeout time.Duration, isPermanent bool) HelloServiceInterface {

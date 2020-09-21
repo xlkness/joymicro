@@ -99,7 +99,7 @@ func (g *joymicro) Generate(file *generator.FileDescriptor) {
 		g.P("var serviceName = \"", lowerServiceName, "\"")
 		g.P()
 
-		g.peerGenerateServiceInterface(file, service, i)
+		g.peerGenerateServiceInterface(file, service, i, hasPeer2Peer)
 		g.peerGenerateNewService(file, service, i, hasPeer2Peer)
 		g.peerGenerateServiceUnexport(file, service, i, hasPeer2Peer)
 		//g.peerGenerateWrapService(file, service, i)

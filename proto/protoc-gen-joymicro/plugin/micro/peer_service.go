@@ -10,7 +10,8 @@ import (
 	"joynova.com/joynova/joymicro/proto/protoc-gen-joymicro/generator"
 )
 
-func (g *joymicro) peerGenerateServiceInterface(file *generator.FileDescriptor, service *pb.ServiceDescriptorProto, index int) {
+func (g *joymicro) peerGenerateServiceInterface(file *generator.FileDescriptor,
+	service *pb.ServiceDescriptorProto, index int, hasPeer2Peer bool) {
 	// 大写的服务名
 	origServName := service.GetName()
 	// 小写的服务名
@@ -44,6 +45,10 @@ func (g *joymicro) peerGenerateServiceInterface(file *generator.FileDescriptor, 
 		methodOutArg := g.typeName(method.GetOutputType())
 
 		g.P(methName, "(context.Context, *", methodInArg, ") (*", methodOutArg, ", error)")
+		if hasPeer2Peer {
+			g.P(methName+"Peer", "(context.Context, string, *", methodInArg, ") (*", methodOutArg, ", error)")
+		}
+		g.P(methName+"All", "(context.Context, *", methodInArg, ") (*", methodOutArg, ", error)")
 	}
 	g.P("}")
 	g.P()

@@ -34,6 +34,8 @@ var serviceName = "shop"
 
 type ShopServiceInterface interface {
 	Buy(context.Context, *Request) (*Response, error)
+	BuyPeer(context.Context, string, *Request) (*Response, error)
+	BuyAll(context.Context, *Request) (*Response, error)
 }
 
 func NewShopService(etcdAddrs []string, timeout time.Duration, isPermanent bool) ShopServiceInterface {

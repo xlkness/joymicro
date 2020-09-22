@@ -30,7 +30,7 @@ func (g *joymicro) peerGenerateRegisterServiceHandler(file *generator.FileDescri
 	//g.P("whdlr := &", wrapServAlias, "{")
 	//g.P("h: hdlr,")
 	//g.P("}")
-	g.P("return s.RegisterOneService(serviceName+\"/\"+serviceName, hdlr)")
+	g.P("return s.RegisterOneService(serviceName, hdlr)")
 	g.P("}")
 	g.P()
 }

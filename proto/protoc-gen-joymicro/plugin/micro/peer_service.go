@@ -82,7 +82,7 @@ func (g *joymicro) peerGenerateNewService(file *generator.FileDescriptor,
 	//wrapServAlias := "wrap" + servAlias
 
 	g.P("func New", servAlias, "(etcdAddrs []string, timeout time.Duration, isPermanent bool) ", servAlias+"Interface", " {")
-	g.P("c := client.New(serviceName + \"/\" + serviceName, etcdAddrs, timeout, isPermanent)")
+	g.P("c := client.New(serviceName, etcdAddrs, timeout, isPermanent)")
 	if hasPeer2Peer {
 		g.P("// 设置点对点选择器")
 		g.P("c.SetSelector(&client.PeerSelector{})")

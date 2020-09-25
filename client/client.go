@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"github.com/smallnest/rpcx/client"
+	"golang.org/x/sync/singleflight"
 	"joynova.com/joynova/joymicro/registry"
 	"joynova.com/joynova/joymicro/util"
 	"sync"
@@ -22,6 +23,8 @@ type Service struct {
 	peerServicesLock      *sync.Mutex
 }
 
+var sf = new(singleflight.Group)
+
 // New 创建对某个节点的rpc客户端管理结构
 // etcdServerAddrs:etcd服务的多个节点地址
 // callTimeout:调用服务超时时间
@@ -31,25 +34,9 @@ type Service struct {
 func New(service string, etcdServerAddrs []string, callTimeout time.Duration, isPermanentSocketLink bool) *Service {
 	etcdServerAddrs = util.PreHandleEtcdHttpAddrs(etcdServerAddrs)
 
-	conf := client.DefaultOption
-
-	// 默认维持2min连接，读超时就和服务器断开链接
-	conf.IdleTimeout = time.Minute * 2
-	if isPermanentSocketLink {
-		conf.Heartbeat = true
-		conf.HeartbeatInterval = time.Second * 30
-	}
-
-	//conf.ReadTimeout = time.Second * 10
-	//conf.WriteTimeout = time.Second * 10
-
-	d := registry.GetEtcdRegistryClientPlugin(service, etcdServerAddrs)
-	xclient := client.NewXClient(service, client.Failtry, client.RandomSelect, d, conf)
-
 	c := &Service{
 		ServiceName:           service,
 		etcdAddrs:             etcdServerAddrs,
-		client:                xclient,
 		callTimeout:           callTimeout,
 		isPermanentSocketLink: isPermanentSocketLink,
 		peerServicesLock:      &sync.Mutex{},
@@ -66,7 +53,7 @@ func (s *Service) SetSelector(selector client.Selector) {
 func (s *Service) Call(ctx context.Context, method string, args interface{}, reply interface{}) error {
 	newCtx, f := context.WithTimeout(ctx, s.callTimeout)
 	defer f()
-	return s.client.Call(newCtx, method, args, reply)
+	return s.getXClient().Call(newCtx, method, args, reply)
 }
 
 /*
@@ -77,5 +64,47 @@ func (s *Service) Call(ctx context.Context, method string, args interface{}, rep
 func (s *Service) CallAll(ctx context.Context, method string, args interface{}, reply interface{}) error {
 	newCtx, f := context.WithTimeout(ctx, s.callTimeout*3)
 	defer f()
-	return s.client.Broadcast(newCtx, method, args, reply)
+	return s.getXClient().Broadcast(newCtx, method, args, reply)
+}
+
+func (s *Service) getXClient() client.XClient {
+	if s.client != nil {
+		return s.client
+	}
+
+	sf.Do("get_client_service", func() (interface{}, error) {
+		if s.client == nil {
+			s.newXClient()
+		}
+		return nil, nil
+	})
+
+	if s.client == nil {
+		sf.Do("get_client_service", func() (interface{}, error) {
+			if s.client == nil {
+				s.newXClient()
+			}
+			return nil, nil
+		})
+	}
+
+	return s.client
+}
+
+func (s *Service) newXClient() {
+	conf := client.DefaultOption
+
+	// 默认维持2min连接，读超时就和服务器断开链接
+	conf.IdleTimeout = time.Minute * 2
+	if s.isPermanentSocketLink {
+		conf.Heartbeat = true
+		conf.HeartbeatInterval = time.Second * 30
+	}
+
+	//conf.ReadTimeout = time.Second * 10
+	//conf.WriteTimeout = time.Second * 10
+
+	d := registry.GetEtcdRegistryClientPlugin(s.ServiceName, s.etcdAddrs)
+	xclient := client.NewXClient(s.ServiceName, client.Failtry, client.RandomSelect, d, conf)
+	s.client = xclient
 }

@@ -105,6 +105,7 @@ func (g *joymicro) Generate(file *generator.FileDescriptor) {
 		//g.peerGenerateWrapService(file, service, i)
 		g.peerGenerateServiceHandlerInterface(file, service, i)
 		g.peerGenerateRegisterServiceHandler(file, service, i)
+		g.peerGenerateTestService(file, service, i, hasPeer2Peer)
 		//g.peerGenerateWarpServiceHandler(file, service, i)
 
 		//g.generateService(file, service, i, hasPeer2Peer)
@@ -119,6 +120,8 @@ func (g *joymicro) GenerateImports(file *generator.FileDescriptor, imports map[g
 	g.P("import (")
 	//g.P(apiPkg, " ", strconv.Quote(path.Join(g.gen.ImportPrefix, apiPkgPath)))
 	g.P("\"time\"")
+	g.P("\"reflect\"")
+	g.P("\"encoding/json\"")
 	g.P(contextPkg, " ", strconv.Quote(path.Join(g.gen.ImportPrefix, contextPkgPath)))
 	g.P(clientPkg, " ", strconv.Quote(path.Join(g.gen.ImportPrefix, clientPkgPath)))
 	g.P(serverPkg, " ", strconv.Quote(path.Join(g.gen.ImportPrefix, serverPkgPath)))

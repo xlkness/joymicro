@@ -11,8 +11,10 @@ import (
 
 import (
 	context "context"
+	"encoding/json"
 	client "joynova.com/joynova/joymicro/client"
 	server "joynova.com/joynova/joymicro/service"
+	"reflect"
 	"time"
 )
 
@@ -39,7 +41,7 @@ type ShopServiceInterface interface {
 }
 
 func NewShopService(etcdAddrs []string, timeout time.Duration, isPermanent bool) ShopServiceInterface {
-	c := client.New(serviceName+"/"+serviceName, etcdAddrs, timeout, isPermanent)
+	c := client.New(serviceName, etcdAddrs, timeout, isPermanent)
 	// 设置点对点选择器
 	c.SetSelector(&client.PeerSelector{})
 	return &shopService{
@@ -61,8 +63,8 @@ func (c *shopService) Buy(ctx context.Context, in *Request) (*Response, error) {
 }
 
 func (c *shopService) BuyPeer(ctx context.Context, peerKey string, in *Request) (*Response, error) {
-	ctx = context.WithValue(ctx, "select_key", peerKey)
 	out := new(Response)
+	ctx = context.WithValue(ctx, "select_key", peerKey)
 	err := c.c.Call(ctx, "Buy", in, out)
 	if err != nil {
 		return nil, err
@@ -84,5 +86,46 @@ type ShopHandlerInterface interface {
 }
 
 func RegisterShopHandler(s *server.ServicesManager, hdlr ShopHandlerInterface) error {
-	return s.RegisterOneService(serviceName+"/"+serviceName, hdlr)
+	return s.RegisterOneService(serviceName, hdlr)
+}
+
+//===============================================Json Handler for Test===============================================
+
+func NewShopJsonTestService(etcdAddrs []string, timeout time.Duration, isPermanent bool) reflect.Type {
+	c := NewShopService(etcdAddrs, timeout, isPermanent)
+	return reflect.TypeOf(&ShopJsonTestService{c: c})
+}
+
+type ShopJsonTestService struct {
+	c ShopServiceInterface
+}
+
+func (c *ShopJsonTestService) Buy(ctx context.Context, in string) (*Response, error) {
+	newIn := &Request{}
+	err := json.Unmarshal([]byte(in), newIn)
+	if err != nil {
+		return nil, err
+	}
+
+	return c.c.Buy(ctx, newIn)
+}
+
+func (c *ShopJsonTestService) BuyPeer(ctx context.Context, peerKey string, in string) (*Response, error) {
+	newIn := &Request{}
+	err := json.Unmarshal([]byte(in), newIn)
+	if err != nil {
+		return nil, err
+	}
+
+	return c.c.BuyPeer(ctx, peerKey, newIn)
+}
+
+func (c *ShopJsonTestService) BuyAll(ctx context.Context, in string) (*Response, error) {
+	newIn := &Request{}
+	err := json.Unmarshal([]byte(in), newIn)
+	if err != nil {
+		return nil, err
+	}
+
+	return c.c.BuyAll(ctx, newIn)
 }

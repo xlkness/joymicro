@@ -285,9 +285,10 @@ func (g *joymicro) peerGenerateTestService(file *generator.FileDescriptor,
 
 	g.P("//===============================================Json Handler for Test===============================================")
 	g.P()
-	g.P("func New", servAlias, "(etcdAddrs []string, timeout time.Duration, isPermanent bool) reflect.Type {")
+	g.P("func New", servAlias, "(etcdAddrs []string, timeout time.Duration, isPermanent bool) (reflect.Type, reflect.Value) {")
 	g.P("c := New", servName, "Service(etcdAddrs, timeout, isPermanent)")
-	g.P("return reflect.TypeOf(&", servAlias, "{c: c})")
+	g.P("c1 := &", servAlias, "{c: c}")
+	g.P("return reflect.TypeOf(c1), reflect.ValueOf(c1)")
 	g.P("}")
 	g.P()
 

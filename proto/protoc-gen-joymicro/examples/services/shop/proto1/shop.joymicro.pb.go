@@ -34,6 +34,10 @@ var _ context.Context
 
 var serviceName = "shop"
 
+func GetServiceName() string {
+	return serviceName
+}
+
 type ShopServiceInterface interface {
 	Buy(context.Context, *Request) (*Response, error)
 	BuyPeer(context.Context, string, *Request) (*Response, error)
@@ -91,9 +95,10 @@ func RegisterShopHandler(s *server.ServicesManager, hdlr ShopHandlerInterface) e
 
 //===============================================Json Handler for Test===============================================
 
-func NewShopJsonTestService(etcdAddrs []string, timeout time.Duration, isPermanent bool) reflect.Type {
+func NewShopJsonTestService(etcdAddrs []string, timeout time.Duration, isPermanent bool) (reflect.Type, reflect.Value) {
 	c := NewShopService(etcdAddrs, timeout, isPermanent)
-	return reflect.TypeOf(&ShopJsonTestService{c: c})
+	c1 := &ShopJsonTestService{c: c}
+	return reflect.TypeOf(c1), reflect.ValueOf(c1)
 }
 
 type ShopJsonTestService struct {

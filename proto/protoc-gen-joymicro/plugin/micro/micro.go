@@ -98,6 +98,10 @@ func (g *joymicro) Generate(file *generator.FileDescriptor) {
 		lowerServiceName := strings.ToLower(service.GetName())
 		g.P("var serviceName = \"", lowerServiceName, "\"")
 		g.P()
+		g.P("func GetServiceName() string {")
+		g.P("return serviceName")
+		g.P("}")
+		g.P()
 
 		g.peerGenerateServiceInterface(file, service, i, hasPeer2Peer)
 		g.peerGenerateNewService(file, service, i, hasPeer2Peer)

@@ -20,6 +20,7 @@ type Service struct {
 	// 用来避免长链接，有通信需求的双方节点形成强联通图，无用established套接字太多
 	isPermanentSocketLink bool
 	client                client.XClient
+	selector              client.Selector
 	peerServicesLock      *sync.Mutex
 }
 
@@ -46,7 +47,10 @@ func New(service string, etcdServerAddrs []string, callTimeout time.Duration, is
 }
 
 func (s *Service) SetSelector(selector client.Selector) {
-	s.client.SetSelector(selector)
+	s.selector = selector
+	if s.client != nil {
+		s.client.SetSelector(selector)
+	}
 }
 
 // Call 根据负载算法从服务中挑一个调用
@@ -106,5 +110,8 @@ func (s *Service) newXClient() {
 
 	d := registry.GetEtcdRegistryClientPlugin(s.ServiceName, s.etcdAddrs)
 	xclient := client.NewXClient(s.ServiceName, client.Failtry, client.RandomSelect, d, conf)
+	if s.selector != nil {
+		xclient.SetSelector(s.selector)
+	}
 	s.client = xclient
 }

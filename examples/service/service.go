@@ -24,14 +24,14 @@ func main() {
 	port = flag.String("p", "8888", "port")
 	flag.Parse()
 
-	s, err := service.New(*no, "192.168.1.188:"+*port, []string{"192.168.1.188:2332"})
+	s, err := service.New("192.168.1.188:"+*port, []string{"192.168.1.188:2332"})
 	if err != nil {
 		panic(err)
 	}
 
 	fmt.Printf("prepare register service...\n")
 
-	err = s.RegisterOneService("micro2/micro.shop", new(Shop))
+	err = s.RegisterOneService("micro.shop", new(Shop))
 	if err != nil {
 		panic(err)
 	}

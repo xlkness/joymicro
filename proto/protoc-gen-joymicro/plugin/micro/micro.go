@@ -85,14 +85,23 @@ func (g *joymicro) Generate(file *generator.FileDescriptor) {
 
 	for i, service := range file.FileDescriptorProto.Service {
 		hasPeer2Peer := false
+		hashCHash := false
 		newMethods := make([]*descriptorpb.MethodDescriptorProto, 0)
 		for _, v := range service.Method {
-			if v.GetName() == "EnablePeer2Peer2" {
+			if v.GetName() == "EnablePeer2Peer" {
 				hasPeer2Peer = true
+			} else if v.GetName() == "EnableCHash" {
+				hashCHash = true
 			} else {
 				newMethods = append(newMethods, v)
 			}
 		}
+
+		if hasPeer2Peer {
+			// 有的点对点，就不能开启一致性hash
+			hashCHash = false
+		}
+
 		service.Method = newMethods
 
 		lowerServiceName := strings.ToLower(service.GetName())
@@ -103,13 +112,13 @@ func (g *joymicro) Generate(file *generator.FileDescriptor) {
 		g.P("}")
 		g.P()
 
-		g.peerGenerateServiceInterface(file, service, i, hasPeer2Peer)
-		g.peerGenerateNewService(file, service, i, hasPeer2Peer)
-		g.peerGenerateServiceUnexport(file, service, i, hasPeer2Peer)
+		g.peerGenerateServiceInterface(file, service, i, hasPeer2Peer, hashCHash)
+		g.peerGenerateNewService(file, service, i, hasPeer2Peer, hashCHash)
+		g.peerGenerateServiceUnexport(file, service, i, hasPeer2Peer, hashCHash)
 		//g.peerGenerateWrapService(file, service, i)
 		g.peerGenerateServiceHandlerInterface(file, service, i)
 		g.peerGenerateRegisterServiceHandler(file, service, i)
-		g.peerGenerateTestService(file, service, i, hasPeer2Peer)
+		g.peerGenerateTestService(file, service, i, hasPeer2Peer, hashCHash)
 		//g.peerGenerateWarpServiceHandler(file, service, i)
 
 		//g.generateService(file, service, i, hasPeer2Peer)

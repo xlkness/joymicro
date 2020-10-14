@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package hello2;
+
+option go_package="hello/proto2";
+
+service Hello1 {
+	// 打开一致性hash
+	rpc EnableCHash(Empty) returns (Empty) {};
+	rpc Hello1(Request1) returns (Response1) {};
+}
+
+message Request1 {
+	string name = 1;
+}
+
+message Response1 {
+	int32 errCode = 1;
+	int32 msg = 2;
+}
+
+message Empty{}

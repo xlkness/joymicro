@@ -3,7 +3,11 @@ package client
 import (
 	"context"
 	"fmt"
+	"github.com/edwingeng/doublejump"
+	"github.com/smallnest/rpcx/client"
+	"hash/fnv"
 	"math/rand"
+	"sort"
 	"strings"
 	"time"
 )
@@ -72,3 +76,90 @@ func (ms *PeerSelector) UpdateServer(servers map[string]string) {
 
 	ms.servers = ss
 }
+
+// consistentHashSelector selects based on JumpConsistentHash.
+type consistentHashSelector struct {
+	h       *doublejump.Hash
+	servers []string
+}
+
+func NewConsistentHashSelector() client.Selector {
+	h := doublejump.NewHash()
+	ss := make([]string, 0)
+	//for k := range servers {
+	//	ss = append(ss, k)
+	//	h.Add(k)
+	//}
+
+	sort.Slice(ss, func(i, j int) bool { return ss[i] < ss[j] })
+	return &consistentHashSelector{servers: ss, h: h}
+}
+
+func (s *consistentHashSelector) Select(ctx context.Context, servicePath, serviceMethod string, args interface{}) string {
+	ss := s.servers
+	if len(ss) == 0 {
+		return ""
+	}
+
+	key := ctx.Value("select_key")
+
+	if key == nil {
+		return s.servers[rand.Intn(len(s.servers))]
+	}
+
+	uintKey := genKey(servicePath, serviceMethod, key)
+	selected, _ := s.h.Get(uintKey).(string)
+	return selected
+}
+
+func (s *consistentHashSelector) UpdateServer(servers map[string]string) {
+	ss := make([]string, 0, len(servers))
+	for k := range servers {
+		s.h.Add(k)
+		ss = append(ss, k)
+	}
+
+	sort.Slice(ss, func(i, j int) bool { return ss[i] < ss[j] })
+
+	for _, k := range s.servers {
+		if servers[k] == "" { // remove
+			s.h.Remove(k)
+		}
+	}
+	s.servers = ss
+}
+
+func genKey(options ...interface{}) uint64 {
+	keyString := ""
+	for _, opt := range options {
+		keyString = keyString + "/" + toString(opt)
+	}
+
+	return HashString(keyString)
+}
+
+func toString(obj interface{}) string {
+	return fmt.Sprintf("%v", obj)
+}
+
+func HashString(s string) uint64 {
+	h := fnv.New64a()
+	h.Write([]byte(s))
+	return h.Sum64()
+}
+
+//func Hash(key uint64, buckets int32) int32 {
+//	if buckets <= 0 {
+//		buckets = 1
+//	}
+//
+//	var b, j int64
+//
+//	for j < int64(buckets) {
+//		b = j
+//		key = key*2862933555777941757 + 1
+//		j = int64(float64(b+1) * (float64(int64(1)<<31) / float64((key>>33)+1)))
+//	}
+//
+//	return int32(b)
+//}

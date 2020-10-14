@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package hello4;
+
+option go_package="hello/proto4";
+
+service Hello3 {
+	rpc Hello3(Request3) returns (Response3) {};
+	rpc HowAreYou(Request3) returns (Response3) {};
+}
+
+message Request3 {
+	string name = 1;
+}
+
+message Response3 {
+	int32 errCode = 1;
+	int32 msg = 2;
+}
+
+message Empty{}

@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package hello3;
+
+option go_package="hello/proto3";
+
+service Hello2 {
+	// 打开点对点
+	rpc EnablePeer2Peer(Empty) returns (Empty) {};
+	rpc Hello2(Request2) returns (Response2) {};
+}
+
+message Request2 {
+	string name = 1;
+}
+
+message Response2 {
+	int32 errCode = 1;
+	int32 msg = 2;
+}
+
+message Empty{}

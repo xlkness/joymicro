@@ -103,7 +103,7 @@ func (s *consistentHashSelector) Select(ctx context.Context, servicePath, servic
 
 	key := ctx.Value("select_key")
 
-	if key == nil {
+	if key == nil || key == "" {
 		return s.servers[rand.Intn(len(s.servers))]
 	}
 

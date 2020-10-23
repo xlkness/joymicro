@@ -3,8 +3,8 @@ syntax = "proto3";
 package proto;
 
 service Hello {
-    // 打开一致性hash
-	rpc EnableCHash(Empty) returns (Empty) {};
+    // 打开点对点
+	rpc EnablePeer2Peer(Empty) returns (Empty) {};
 	rpc Hello(Request) returns (Response) {};
 }
 

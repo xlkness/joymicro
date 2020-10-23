@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"joynova.com/joynova/joymicro/examples/hello/proto"
+	"joynova.com/joynova/joymicro/examples/hello1/proto"
 	"joynova.com/joynova/joymicro/service"
 )
 

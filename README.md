@@ -7,7 +7,7 @@ joymicro是使用rpcx框架，根据protobuf服务文件生成golang服务的库
 ### rpcx service
 
 根目录的service&client封装了rpcx服务，使用**etcd**做注册中心，其中`client/selector`集成了两个过程调用的服务节点选择器，一个可以指定调用的服务节点名，用于点对点
-通信;一个使用一致性hash，客户端给定hash key即可hash到唯一几个节点，用于请求顺序调用（需服务节点也能串行处理）。
+通信(见`examples/hello1`);一个使用一致性hash，客户端给定hash key即可hash到唯一几个节点，用于请求顺序调用（需服务节点也能串行处理，见`examples/hello`）。
 注意：这两个插件不能同时使用！
 
 ### protoc-gen-joymicro

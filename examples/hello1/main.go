@@ -16,7 +16,7 @@ func (h *Handler) Hello(ctx context.Context, req *proto.Request, res *proto.Resp
 }
 
 func main() {
-	s, err := service.New("192.168.1.2:8888", []string{"192.168.1.2:2383"})
+	s, err := service.NewWithKey("key1", "192.168.1.2:8888", []string{"192.168.1.2:2383"})
 	if err != nil {
 		panic(err)
 	}

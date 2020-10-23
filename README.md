@@ -2,7 +2,7 @@
 
 joymicro是使用rpcx框架，根据protobuf服务文件生成golang服务的库。 
 
-##核心组件
+## 核心组件
 
 ### rpcx service
 

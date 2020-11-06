@@ -5,6 +5,7 @@ import (
 	"github.com/smallnest/rpcx/client"
 	"golang.org/x/sync/singleflight"
 	"joynova.com/joynova/joymicro/registry"
+	"joynova.com/joynova/joymicro/tracer"
 	"joynova.com/joynova/joymicro/util"
 	"sync"
 	"time"
@@ -21,6 +22,7 @@ type Service struct {
 	isPermanentSocketLink bool
 	client                client.XClient
 	selector              client.Selector
+	plugins               client.PluginContainer
 	peerServicesLock      *sync.Mutex
 }
 
@@ -53,11 +55,22 @@ func (s *Service) SetSelector(selector client.Selector) {
 	}
 }
 
+func (s *Service) SetTracer() {
+	if s.plugins != nil {
+		s.plugins.Add(&tracer.JaegerOpenTracingClientPlugin{})
+	} else {
+		p := client.NewPluginContainer()
+		p.Add(&tracer.JaegerOpenTracingClientPlugin{})
+		s.plugins = p
+		//s.client.SetPlugins(p)
+	}
+}
+
 // Call 根据负载算法从服务中挑一个调用
 func (s *Service) Call(ctx context.Context, method string, args interface{}, reply interface{}) error {
-	newCtx, f := context.WithTimeout(ctx, s.callTimeout)
-	defer f()
-	return s.getXClient().Call(newCtx, method, args, reply)
+	//newCtx, f := context.WithTimeout(ctx, s.callTimeout)
+	//defer f()
+	return s.getXClient().Call(ctx, method, args, reply)
 }
 
 /*
@@ -112,6 +125,9 @@ func (s *Service) newXClient() {
 	xclient := client.NewXClient(s.ServiceName, client.Failtry, client.RandomSelect, d, conf)
 	if s.selector != nil {
 		xclient.SetSelector(s.selector)
+	}
+	if s.plugins != nil {
+		xclient.SetPlugins(s.plugins)
 	}
 	s.client = xclient
 }

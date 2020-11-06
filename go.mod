@@ -17,14 +17,19 @@ require (
 	github.com/golang/protobuf v1.4.2
 	github.com/gorilla/websocket v1.4.1 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.1.0 // indirect
+	github.com/jaegertracing/jaeger-client-go v2.25.0+incompatible // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/onsi/ginkgo v1.12.0 // indirect
+	github.com/opentracing/opentracing-go v1.1.1-0.20190913142402-a7454ce5950e
+	github.com/openzipkin/zipkin-go v0.2.5
 	github.com/prometheus/client_golang v1.7.0 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20200313005456-10cdbea86bc0
 	github.com/smallnest/rpcx v0.0.0-20200904040754-162b6648c998
 	github.com/tmc/grpc-websocket-proxy v0.0.0-20200122045848-3419fae592fc // indirect
+	github.com/uber/jaeger-client-go v2.25.0+incompatible
+	github.com/uber/jaeger-lib v2.4.0+incompatible // indirect
 	go.uber.org/zap v1.13.0 // indirect
 	golang.org/x/crypto v0.0.0-20200709230013-948cd5f35899 // indirect
 	golang.org/x/lint v0.0.0-20191125180803-fdd1cda4f05f // indirect

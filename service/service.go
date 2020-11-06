@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/smallnest/rpcx/server"
 	"joynova.com/joynova/joymicro/registry"
+	"joynova.com/joynova/joymicro/tracer"
 	"joynova.com/joynova/joymicro/util"
 )
 
@@ -26,11 +27,7 @@ type ServicesManager struct {
 // etcdServerAddrs:etcd服务地址
 func New(addr string, etcdServerAddrs []string) (*ServicesManager, error) {
 	etcdServerAddrs = util.PreHandleEtcdHttpAddrs(etcdServerAddrs)
-	m := &ServicesManager{
-		Addr:      addr,
-		Services:  make([]*Service, 0),
-		rpcserver: server.NewServer(),
-	}
+	m := newServersManager(addr)
 
 	// 添加etcd注册中心
 	r, err := registry.GetEtcdRegistryServerPlugin("", m.Addr, etcdServerAddrs)
@@ -48,11 +45,7 @@ func New(addr string, etcdServerAddrs []string) (*ServicesManager, error) {
 // etcdServerAddrs:etcd服务地址
 func NewWithKey(key string, addr string, etcdServerAddrs []string) (*ServicesManager, error) {
 	etcdServerAddrs = util.PreHandleEtcdHttpAddrs(etcdServerAddrs)
-	m := &ServicesManager{
-		Addr:      addr,
-		Services:  make([]*Service, 0),
-		rpcserver: server.NewServer(),
-	}
+	m := newServersManager(addr)
 
 	// 添加etcd注册中心
 	r, err := registry.GetEtcdRegistryServerPlugin(key, m.Addr, etcdServerAddrs)
@@ -62,6 +55,10 @@ func NewWithKey(key string, addr string, etcdServerAddrs []string) (*ServicesMan
 	m.rpcserver.Plugins.Add(r)
 
 	return m, nil
+}
+
+func (m *ServicesManager) SetTracer() {
+	m.rpcserver.Plugins.Add(&tracer.JaegerOpenTracingServerPlugin{})
 }
 
 // RegisterOneService 注册一个服务
@@ -93,4 +90,16 @@ func (m *ServicesManager) checkDuplicateService(services ...string) error {
 // 注意：register过程必须在start之前
 func (m *ServicesManager) Run(addr string) error {
 	return m.rpcserver.Serve("tcp", addr)
+}
+
+func newServersManager(addr string) *ServicesManager {
+	m := &ServicesManager{
+		Addr:      addr,
+		Services:  make([]*Service, 0),
+		rpcserver: server.NewServer(),
+	}
+
+	//m.rpcserver.Plugins.Add(&tracer.JaegerOpenTracingServerPlugin{})
+
+	return m
 }

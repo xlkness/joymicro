@@ -23,8 +23,8 @@ json参数的调用方法，内部其实还是将json转为protobuf结构的调�
 用于测试调用。项目服务都定义好了之后可以编写可执行程序直接命令行给json数据调用方法。例如
 `./xxx -registry=192.168.1.2:2382 -service=shop -method=Buy -d='{"id":1, "num":100, "money":200}'`
 
-### todo  
-- 分布式调用链追踪
+### 分布式调用链追踪  
+- 集成jaeger
 
 ### 没有什么*用的模板服务生成工具`tool/joymicro`  
 - **编译协议生成插件**

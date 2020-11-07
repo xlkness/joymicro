@@ -57,10 +57,10 @@ func (s *Service) SetSelector(selector client.Selector) {
 
 func (s *Service) SetTracer() {
 	if s.plugins != nil {
-		s.plugins.Add(&tracer.JaegerOpenTracingClientPlugin{})
+		s.plugins.Add(&tracer.OpenTracingClientPlugin{})
 	} else {
 		p := client.NewPluginContainer()
-		p.Add(&tracer.JaegerOpenTracingClientPlugin{})
+		p.Add(&tracer.OpenTracingClientPlugin{})
 		s.plugins = p
 		//s.client.SetPlugins(p)
 	}

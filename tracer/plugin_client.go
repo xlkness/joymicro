@@ -7,9 +7,9 @@ import (
 	"github.com/smallnest/rpcx/share"
 )
 
-type JaegerOpenTracingClientPlugin struct{}
+type OpenTracingClientPlugin struct{}
 
-func (p *JaegerOpenTracingClientPlugin) PreCall(ctx context.Context, servicePath, serviceMethod string, args interface{}) error {
+func (p *OpenTracingClientPlugin) PreCall(ctx context.Context, servicePath, serviceMethod string, args interface{}) error {
 	var span1 opentracing.Span
 
 	// if it is called in rpc service in case that a service calls antoher service,
@@ -37,7 +37,7 @@ func (p *JaegerOpenTracingClientPlugin) PreCall(ctx context.Context, servicePath
 
 	return nil
 }
-func (p *JaegerOpenTracingClientPlugin) PostCall(ctx context.Context, servicePath, serviceMethod string, args interface{}, reply interface{}, err error) error {
+func (p *OpenTracingClientPlugin) PostCall(ctx context.Context, servicePath, serviceMethod string, args interface{}, reply interface{}, err error) error {
 	if rpcxContext, ok := ctx.(*share.Context); ok {
 		span1 := rpcxContext.Value(share.OpentracingSpanClientKey)
 		if span1 != nil {

@@ -58,7 +58,7 @@ func NewWithKey(key string, addr string, etcdServerAddrs []string) (*ServicesMan
 }
 
 func (m *ServicesManager) SetTracer() {
-	m.rpcserver.Plugins.Add(&tracer.JaegerOpenTracingServerPlugin{})
+	m.rpcserver.Plugins.Add(&tracer.OpenTracingServerPlugin{})
 }
 
 // RegisterOneService 注册一个服务
@@ -98,8 +98,6 @@ func newServersManager(addr string) *ServicesManager {
 		Services:  make([]*Service, 0),
 		rpcserver: server.NewServer(),
 	}
-
-	//m.rpcserver.Plugins.Add(&tracer.JaegerOpenTracingServerPlugin{})
 
 	return m
 }

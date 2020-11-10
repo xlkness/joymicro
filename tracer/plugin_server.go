@@ -12,9 +12,9 @@ import (
 	"github.com/smallnest/rpcx/share"
 )
 
-type JaegerOpenTracingServerPlugin struct{}
+type OpenTracingServerPlugin struct{}
 
-func (p *JaegerOpenTracingServerPlugin) Register(name string, rcvr interface{}, metadata string) error {
+func (p *OpenTracingServerPlugin) Register(name string, rcvr interface{}, metadata string) error {
 	span1 := opentracing.StartSpan("rpc.Register")
 	defer span1.Finish()
 
@@ -23,7 +23,7 @@ func (p *JaegerOpenTracingServerPlugin) Register(name string, rcvr interface{}, 
 	return nil
 }
 
-func (p *JaegerOpenTracingServerPlugin) RegisterFunction(serviceName, fname string, fn interface{}, metadata string) error {
+func (p *OpenTracingServerPlugin) RegisterFunction(serviceName, fname string, fn interface{}, metadata string) error {
 	span1 := opentracing.StartSpan("rpc.RegisterFunction")
 	defer span1.Finish()
 
@@ -32,7 +32,7 @@ func (p *JaegerOpenTracingServerPlugin) RegisterFunction(serviceName, fname stri
 	return nil
 }
 
-func (p *JaegerOpenTracingServerPlugin) PostConnAccept(conn net.Conn) (net.Conn, bool) {
+func (p *OpenTracingServerPlugin) PostConnAccept(conn net.Conn) (net.Conn, bool) {
 	span1 := opentracing.StartSpan("rpc.AcceptConn")
 	defer span1.Finish()
 
@@ -41,7 +41,7 @@ func (p *JaegerOpenTracingServerPlugin) PostConnAccept(conn net.Conn) (net.Conn,
 	return conn, true
 }
 
-func (p *JaegerOpenTracingServerPlugin) PreHandleRequest(ctx context.Context, r *protocol.Message) error {
+func (p *OpenTracingServerPlugin) PreHandleRequest(ctx context.Context, r *protocol.Message) error {
 	wireContext, err := share.GetSpanContextFromContext(ctx)
 	if err != nil || wireContext == nil {
 		return err
@@ -57,7 +57,7 @@ func (p *JaegerOpenTracingServerPlugin) PreHandleRequest(ctx context.Context, r 
 	return nil
 }
 
-func (p *JaegerOpenTracingServerPlugin) PostWriteResponse(ctx context.Context, req *protocol.Message, res *protocol.Message, err error) error {
+func (p *OpenTracingServerPlugin) PostWriteResponse(ctx context.Context, req *protocol.Message, res *protocol.Message, err error) error {
 	if rpcxContext, ok := ctx.(*share.Context); ok {
 		span1 := rpcxContext.Value(share.OpentracingSpanServerKey)
 		if span1 != nil {
@@ -67,6 +67,6 @@ func (p *JaegerOpenTracingServerPlugin) PostWriteResponse(ctx context.Context, r
 	return nil
 }
 
-func (p *JaegerOpenTracingServerPlugin) Unregister(name string) error {
+func (p *OpenTracingServerPlugin) Unregister(name string) error {
 	return nil
 }

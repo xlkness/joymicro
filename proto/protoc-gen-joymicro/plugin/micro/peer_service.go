@@ -10,6 +10,8 @@ import (
 	"joynova.com/joynova/joymicro/proto/protoc-gen-joymicro/generator"
 )
 
+var toAllNodesSuffix = "_ToAllNodes"
+
 func (g *joymicro) peerGenerateServiceInterface(file *generator.FileDescriptor,
 	service *pb.ServiceDescriptorProto, index int, hasPeer2Peer bool, hashCHash bool) {
 	// 大写的服务名
@@ -52,7 +54,7 @@ func (g *joymicro) peerGenerateServiceInterface(file *generator.FileDescriptor,
 		if hasPeer2Peer {
 			g.P(methName+"Peer", "(context.Context, string, *", methodInArg, ") (*", methodOutArg, ", error)")
 		}
-		g.P(methName+"All", "(context.Context, *", methodInArg, ") (*", methodOutArg, ", error)")
+		g.P(methName+toAllNodesSuffix, "(context.Context, *", methodInArg, ") (*", methodOutArg, ", error)")
 	}
 	g.P("}")
 	g.P()
@@ -177,7 +179,7 @@ func (g *joymicro) peerGenerateServiceUnexport(file *generator.FileDescriptor,
 		}
 
 		// 生成广播调用方法
-		g.P(receiver, methName+"All", "(ctx context.Context, in *", methodInArg, ") (*", methodOutArg, ", error) {")
+		g.P(receiver, methName+toAllNodesSuffix, "(ctx context.Context, in *", methodInArg, ") (*", methodOutArg, ", error) {")
 		gf("CallAll", false, false)
 	}
 }
@@ -274,7 +276,7 @@ func (g *joymicro) peerGenerateTestService(file *generator.FileDescriptor,
 		}
 
 		// 生成广播调用方法
-		g.P(receiver, methName+"All", "(ctx context.Context, in string) (*", methodOutArg, ", error) {")
-		gf(methName+"All", false, false)
+		g.P(receiver, methName+toAllNodesSuffix, "(ctx context.Context, in string) (*", methodOutArg, ", error) {")
+		gf(methName+toAllNodesSuffix, false, false)
 	}
 }

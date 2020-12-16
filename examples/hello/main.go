@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"joynova.com/joynova/joymicro/examples/hello/proto"
+	"joynova.com/joynova/joymicro/registry"
 	"joynova.com/joynova/joymicro/service"
 )
 
@@ -16,7 +17,9 @@ func (h *Handler) Hello(ctx context.Context, req *proto.Request, res *proto.Resp
 }
 
 func main() {
-	s, err := service.New("192.168.1.2:8888", []string{"192.168.1.2:2383"})
+	registry.SetNameSpace("likun_hahah")
+	registry.SetDefaultBaseDir("/joymicro/services/")
+	s, err := service.New("192.168.1.188:8888", []string{"192.168.1.188:2332"})
 	if err != nil {
 		panic(err)
 	}

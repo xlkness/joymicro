@@ -1,11 +1,12 @@
 package registry
 
 import (
+	"time"
+
 	"github.com/rcrowley/go-metrics"
 	"github.com/smallnest/rpcx/client"
 	"github.com/smallnest/rpcx/server"
 	"github.com/smallnest/rpcx/serverplugin"
-	"time"
 )
 
 // todo etcd插件不支持注册函数服务
@@ -43,6 +44,7 @@ func getBaseDir() string {
 		if DefaultBaseDir[0] == '/' {
 			return NameSpace + DefaultBaseDir
 		}
+		return NameSpace + "/" + DefaultBaseDir
 	}
 	return DefaultBaseDir
 }

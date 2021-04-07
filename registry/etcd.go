@@ -17,7 +17,7 @@ func GetEtcdRegistryServerPlugin(key string, serviceAddr string, etcdAddress []s
 
 	baseDir := getBaseDir()
 
-	r := &serverplugin.EtcdRegisterPlugin{
+	r := &serverplugin.EtcdV3RegisterPlugin{
 		ServiceAddress: key + "@" + serviceAddr,
 		EtcdServers:    etcdAddress,
 		BasePath:       baseDir,

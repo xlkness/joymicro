@@ -4,9 +4,10 @@ import (
 	"time"
 
 	"github.com/rcrowley/go-metrics"
-	"github.com/smallnest/rpcx/client"
+	"github.com/rpcxio/rpcx-etcd/client"
+	"github.com/rpcxio/rpcx-etcd/serverplugin"
+	xclient "github.com/smallnest/rpcx/client"
 	"github.com/smallnest/rpcx/server"
-	"github.com/smallnest/rpcx/serverplugin"
 )
 
 // todo etcd插件不支持注册函数服务
@@ -28,8 +29,8 @@ func GetEtcdRegistryServerPlugin(key string, serviceAddr string, etcdAddress []s
 	return r, err
 }
 
-func GetEtcdRegistryClientPlugin(service string, etcdServerAddrs []string) client.ServiceDiscovery {
-	d := client.NewEtcdDiscovery(getBaseDir(), service, etcdServerAddrs, nil)
+func GetEtcdRegistryClientPlugin(service string, etcdServerAddrs []string) xclient.ServiceDiscovery {
+	d, _ := client.NewEtcdDiscovery(getBaseDir(), service, etcdServerAddrs, nil)
 	return d
 }
 

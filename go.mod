@@ -17,9 +17,8 @@ require (
 	github.com/golang/protobuf v1.4.3
 	github.com/opentracing/opentracing-go v1.1.1-0.20190913142402-a7454ce5950e
 	github.com/rcrowley/go-metrics v0.0.0-20200313005456-10cdbea86bc0
-	github.com/rpcxio/rpcx-etcd v0.0.0-20210408131901-67fd64750268 // indirect
+	github.com/rpcxio/rpcx-etcd v0.0.0-20210408131901-67fd64750268
 	github.com/smallnest/rpcx v1.6.2
-	github.com/stretchr/objx v0.1.1 // indirect
 	github.com/uber/jaeger-client-go v2.25.0+incompatible
 	github.com/uber/jaeger-lib v2.4.0+incompatible // indirect
 	github.com/xtaci/lossyconn v0.0.0-20200209145036-adba10fffc37 // indirect

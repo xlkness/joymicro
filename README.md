@@ -18,10 +18,14 @@ joymicro是使用rpcx框架，根据protobuf服务文件生成golang服务的库
 
 ### 命令行调用
 
-protoc-gen-joymicro插件生成的文件中，有一个"Json Handler for Test"的模块，根据服务proto生成
+`protoc-gen-joymicro`插件生成的文件中，有一个"Json Handler for Test"的模块，根据服务proto生成
 json参数的调用方法，内部其实还是将json转为protobuf结构的调用参去调用正式方法，所以"Json Handler"可以
 用于测试调用。项目服务都定义好了之后可以编写可执行程序直接命令行给json数据调用方法。例如
 `./xxx -registry=192.168.1.2:2382 -service=shop -method=Buy -d='{"id":1, "num":100, "money":200}'`
+
+### 打包所有服务为本地函数调用
+`protoc-gen-joymicro`插件生成的文件中，有一个`isLocal`相关的服务参数，指定服务走本地还是走网络，因此可以用来封装
+所有服务入口为本地函数调用，进而打包成一个进程做测试。
 
 ### 分布式调用链追踪  
 - 集成jaeger

@@ -87,7 +87,8 @@ func (g *joymicro) peerGenerateNewService(file *generator.FileDescriptor,
 	// 封装服务
 	//wrapServAlias := "wrap" + servAlias
 
-	g.P("func New", servAlias, "(etcdAddrs []string, timeout time.Duration, isPermanent bool) ", servAlias+"Interface", " {")
+	g.P("func New", servAlias, "(etcdAddrs []string, timeout time.Duration, isPermanent, isLocal bool) ", servAlias+"Interface", " {")
+	g.P("if !isLocal {")
 	g.P("c := client.New(serviceName, etcdAddrs, timeout, isPermanent)")
 	if hasPeer2Peer {
 		g.P("// 设置点对点选择器")
@@ -99,6 +100,9 @@ func (g *joymicro) peerGenerateNewService(file *generator.FileDescriptor,
 	}
 	g.P("return &", servAliasUnexport, "{")
 	g.P("c: c,")
+	g.P("}")
+	g.P("} else {")
+	g.P("return &", servAliasUnexport+"Local{}")
 	g.P("}")
 	g.P("}")
 	g.P()
@@ -184,6 +188,96 @@ func (g *joymicro) peerGenerateServiceUnexport(file *generator.FileDescriptor,
 	}
 }
 
+func (g *joymicro) peerGenerateServiceLocalUnexport(file *generator.FileDescriptor,
+	service *pb.ServiceDescriptorProto, index int, hasPeer2Peer bool, hashCHash bool) {
+	// 大写的服务名
+	origServName := service.GetName()
+	// 小写的服务名
+	// lowerServiceName := strings.ToLower(service.GetName())
+	// 协议文件夹包名
+	//serviceName := lowerServiceName
+	//if pkg := file.GetPackage(); pkg != "" {
+	//	serviceName = pkg
+	//}
+	// 驼峰服务名
+	servName := generator.CamelCase(origServName)
+	// 驼峰服务Service
+	servAlias := servName + "Service"
+
+	// strip suffix
+	if strings.HasSuffix(servAlias, "ServiceService") {
+		servAlias = strings.TrimSuffix(servAlias, "Service")
+	}
+
+	// 首字母小写服务
+	servAliasUnexport := unexport(servAlias) + "Local"
+
+	// 首字母小写本地handler名
+	servHandlerAliasUnexport := unexport(servName) + "HandlerLocal"
+
+	// 驼峰服务Handler
+	handlerAlias := servName + "HandlerInterface"
+
+	// 封装服务
+	//wrapServAlias := "wrap" + servAlias
+
+	g.P("var ", servHandlerAliasUnexport, " ", handlerAlias)
+	g.P()
+
+	g.P("type ", servAliasUnexport, " struct {")
+	// g.P("c *client.Service")
+	g.P("}")
+
+	for _, method := range service.Method {
+		// 服务名
+		//serviceNameService := serviceName + "Service"
+		// 接收器名
+		receiver := "func (c *" + servAliasUnexport + ")"
+		// 方法名
+		methName := generator.CamelCase(method.GetName())
+		// 协议请求参数
+		methodInArg := g.typeName(method.GetInputType())
+		// 协议响应参数
+		methodOutArg := g.typeName(method.GetOutputType())
+
+		gf := func(callFun string, peer bool, hash bool) {
+			g.P("out := new(", methodOutArg, ")")
+			if peer {
+				g.P("ctx = context.WithValue(ctx, \"select_key\", peerKey)")
+			}
+			if hash {
+				g.P("ctx = context.WithValue(ctx, \"select_key\", key)")
+			}
+			g.P("err := ", servHandlerAliasUnexport, ".", method.GetName(), `(ctx, in, out)`)
+			// g.P("err := ", `c.c.`, callFun, `(ctx, "`, method.GetName(), `", in, out)`)
+			g.P("if err != nil { ")
+			g.P("return nil, err")
+			g.P("}")
+			g.P("return out, nil")
+			g.P("}")
+			g.P()
+		}
+
+		// 生成负载均衡调用方法
+		if hashCHash {
+			g.P(receiver, methName, "(ctx context.Context, key string, in *", methodInArg, ") (*", methodOutArg, ", error) {")
+		} else {
+			g.P(receiver, methName, "(ctx context.Context, in *", methodInArg, ") (*", methodOutArg, ", error) {")
+		}
+		gf("Call", false, hashCHash)
+
+		// 生成点对点调用方法
+		if hasPeer2Peer {
+			g.P(receiver, methName+"Peer", "(ctx context.Context, peerKey string, in *", methodInArg, ") (*", methodOutArg, ", error) {")
+			gf("Call", true, false)
+		}
+
+		// 生成广播调用方法
+		g.P(receiver, methName+toAllNodesSuffix, "(ctx context.Context, in *", methodInArg, ") (*", methodOutArg, ", error) {")
+		gf("CallAll", false, false)
+	}
+}
+
 func (g *joymicro) peerGenerateTestService(file *generator.FileDescriptor,
 	service *pb.ServiceDescriptorProto, index int, hasPeer2Peer bool, hashCHash bool) {
 	// 大写的服务名
@@ -214,7 +308,7 @@ func (g *joymicro) peerGenerateTestService(file *generator.FileDescriptor,
 	g.P("//===============================================Json Handler for Test===============================================")
 	g.P()
 	g.P("func New", servAlias, "(etcdAddrs []string, timeout time.Duration, isPermanent bool) (reflect.Type, reflect.Value) {")
-	g.P("c := New", servName, "Service(etcdAddrs, timeout, isPermanent)")
+	g.P("c := New", servName, "Service(etcdAddrs, timeout, isPermanent, false)")
 	g.P("c1 := &", servAlias, "{c: c}")
 	g.P("return reflect.TypeOf(c1), reflect.ValueOf(c1)")
 	g.P("}")

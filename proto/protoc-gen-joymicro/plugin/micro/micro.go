@@ -2,10 +2,11 @@ package micro
 
 import (
 	"fmt"
-	"google.golang.org/protobuf/types/descriptorpb"
 	"path"
 	"strconv"
 	"strings"
+
+	"google.golang.org/protobuf/types/descriptorpb"
 
 	"github.com/golang/protobuf/proto"
 	pb "github.com/golang/protobuf/protoc-gen-go/descriptor"
@@ -115,9 +116,11 @@ func (g *joymicro) Generate(file *generator.FileDescriptor) {
 		g.peerGenerateServiceInterface(file, service, i, hasPeer2Peer, hashCHash)
 		g.peerGenerateNewService(file, service, i, hasPeer2Peer, hashCHash)
 		g.peerGenerateServiceUnexport(file, service, i, hasPeer2Peer, hashCHash)
+		g.peerGenerateServiceLocalUnexport(file, service, i, hasPeer2Peer, hashCHash)
 		//g.peerGenerateWrapService(file, service, i)
 		g.peerGenerateServiceHandlerInterface(file, service, i)
 		g.peerGenerateRegisterServiceHandler(file, service, i)
+		g.peerGenerateServiceNewAndRunHandler(file, service, i, hasPeer2Peer, hashCHash)
 		g.peerGenerateTestService(file, service, i, hasPeer2Peer, hashCHash)
 		//g.peerGenerateWarpServiceHandler(file, service, i)
 
